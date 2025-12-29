@@ -2523,27 +2523,122 @@ iwr -useb https://raw.githubusercontent.com/user/file-sorter/main/install.ps1 | 
 
 ---
 
-## Development Plan - Step by Step Implementation
+## Development Plan - Step by Step Implementation (SIMPLIFIED)
 
-This section provides a detailed step-by-step development plan. Each step is **independent and testable**. After completing each step, you can manually test the functionality before proceeding to the next step.
+This section provides a **simplified** step-by-step development plan focused on **core functionality with advanced features where essential**. Each step is **independent and testable**. After completing each step, you can manually test the functionality before proceeding to the next step.
 
-### Development Principles
+### Simplified Development Principles
 
-- **Each step is testable:** After each step, you can run the program and test the new functionality
-- **Incremental development:** Each step builds on previous steps
-- **Clear testing instructions:** Each step includes manual testing instructions
-- **Working state:** After each step, the program should be in a working state (even if incomplete)
+- **Core functionality first:** Focus on essential features only
+- **Advanced where needed:** Conflict resolution, error handling, checkpoint system must be advanced from start
+- **Each step is testable:** After each step, you can run the program and test
+- **Working state:** After each step, the program should be in a working state
+
+### What We're Building (Core Features):
+1. ✅ Basic file indexing (recursive, saves to JSON)
+2. ✅ TUI with main screen and indexing screen (top-like layout)
+3. ✅ LLM analysis (OpenAI ChatGPT-5.2 - primary, others in next phase)
+4. ✅ File operations (move, rename) with **advanced conflict resolution**
+5. ✅ Version control (save structure, rollback)
+6. ✅ **Translation system** (English default, all text in translation files for easy i18n)
+7. ✅ **Advanced checkpoint system** (pause/resume, handles large file counts)
+8. ✅ **Dynamic error handling** (user-friendly + developer details)
+9. ✅ **Parallel processing system** (dynamic, reusable, TUI-friendly) - from the start
+10. ✅ **Advanced search** (multi-language support) - later step
+11. ✅ **Multi-select operations** - later step
+
+### What We're Skipping for MVP:
+- ❌ Multiple LLM providers → Only OpenAI ChatGPT-5.2 (others in next phase)
+- ❌ Custom LLM endpoint → Next phase
+- ❌ Complex exceptions → Skip for now
+- ❌ Virtualization → Basic table (optimize later if needed)
+- ❌ Incremental indexing → Full re-index each time (can optimize later)
 
 ---
 
-## Phase 1: Project Foundation
+## Step-by-Step Implementation (15 Steps)
 
-### Step 1.1: Project Structure and Basic Setup
+### Step 1: Project Setup
+- Create project structure:
+  ```
+  file_sorter/
+  ├── src/
+  │   └── file_sorter/
+  │       ├── __init__.py
+  │       └── main.py
+  ├── requirements.txt
+  ├── .gitignore
+  ├── README.md
+  └── setup.py
+  ```
+- Setup.py with entry point: `file-sorter`
+- Requirements.txt: `textual>=0.50.0`, `rich>=13.0.0`, `openai>=1.0.0`
+- Basic main.py that prints "File Sorter TUI - Starting..."
 
-**Goal:** Create basic project structure and ensure Python environment works
+**Test:** `pip install -e . && file-sorter` → Should print "File Sorter TUI - Starting..."
 
-**Tasks:**
-1. Create project directory structure:
+---
+
+### Step 2: Translation System Foundation
+- Create `src/file_sorter/i18n/` directory:
+  ```
+  i18n/
+  ├── __init__.py
+  ├── translations.py
+  └── en.json
+  ```
+- Create `en.json` with all UI strings:
+  ```json
+  {
+    "app": {
+      "title": "File Sorter",
+      "welcome": "Welcome to File Sorter"
+    },
+    "main_menu": {
+      "title": "Main Menu",
+      "start_indexing": "Start Indexing",
+      "analyze_llm": "Analyze with LLM",
+      "settings": "Settings",
+      "exit": "Exit"
+    },
+    "errors": {
+      "file_not_found": "File not found: {path}",
+      "permission_denied": "Permission denied: {path}"
+    }
+  }
+  ```
+- Create `translations.py`:
+  - Function `t(key, **kwargs)` to get translation
+  - Load language from config (default: "en")
+  - All UI text uses translations (even if only English for now)
+
+**Why:** Makes it easy to add other languages later - just add `lv.json`, `ru.json` and update dropdown
+
+**Test:** Run program → All text loads from `en.json`, can change language in config
+
+---
+
+### Step 3: Configuration System
+- Create `src/file_sorter/utils/config.py`:
+  - Function to find/create `.file_sorter/` directory in working directory
+  - Function to load/create `config.json` with defaults:
+    ```json
+    {
+      "language": "en",
+      "llm_provider": "openai",
+      "llm_model": "gpt-5.2",
+      "llm_api_key": "",
+      "batch_size": 100,
+      "thread_count": 4
+    }
+    ```
+  - Check parent directories for existing `.file_sorter/` (offer to use parent's)
+
+**Test:** Run program → Should create `.file_sorter/config.json` in current directory
+
+---
+
+### Step 4: Dynamic Error Handling System
    ```
    file_sorter/
    ├── src/
@@ -2607,12 +2702,33 @@ This section provides a detailed step-by-step development plan. Each step is **i
 
 ---
 
-### Step 1.2: Configuration System
+### Step 4: Dynamic Error Handling System
+- Create `src/file_sorter/utils/error_handler.py`:
+  - Centralized error handling class
+  - Error types: FileOperationError, LLMError, IndexingError, ConfigError
+  - Function `handle_error(error, context)`:
+    - Logs detailed error for developer (file, line, stack trace, context)
+    - Returns user-friendly message
+    - Stores error details for debugging
+  - Error display:
+    - User sees: Simple, clear message (e.g., "File not found: document.txt")
+    - Developer sees: Full details (file path, line number, stack trace, context)
+    - Option to show/hide details (toggle in UI)
+  - Error recovery:
+    - Suggests fixes when possible
+    - Can retry operations
+    - Rollback on critical errors
 
-**Goal:** Create configuration system that creates `.file_sorter/config.json` in working directory
+**Why:** Proper error handling from start makes debugging easier and user experience better
 
-**Tasks:**
-1. Create `src/file_sorter/utils/config.py`:
+**Test:**
+- Trigger file error → Should show user-friendly message
+- Toggle details → Should show developer details
+- Test LLM error → Should handle gracefully
+
+---
+
+### Step 5: Basic TUI
    - Function to find/create `.file_sorter/` directory in current working directory
    - Function to load/create `config.json` with defaults
    - Default config structure:
@@ -2650,9 +2766,19 @@ This section provides a detailed step-by-step development plan. Each step is **i
 
 ---
 
-### Step 1.3: Directory Selection Logic
+### Step 5: Basic TUI
+- Create `src/file_sorter/tui/app.py`:
+  - Basic Textual App class
+  - Load translations
+  - Main screen with header (top section) and content area (bottom section)
+  - Top-like layout: Header ~20% height, Content ~80% height
+  - Exit on 'q'
 
-**Goal:** Implement logic to check parent directories for existing `.file_sorter/`
+**Test:** Run program → TUI opens with top-like layout, can exit with 'q'
+
+---
+
+### Step 6: Advanced Checkpoint System
 
 **Tasks:**
 1. Add function to `utils/config.py`:
@@ -2684,1457 +2810,415 @@ This section provides a detailed step-by-step development plan. Each step is **i
 
 ---
 
-## Phase 2: Translation System
+### Step 6: Advanced Checkpoint System
+- Create `src/file_sorter/storage/checkpoint_manager.py`:
+  - Function `save_checkpoint(progress_data, path)`:
+    - Saves to `.file_sorter/index_checkpoint.json`
+    - Includes: processed files list, batch number, total files, file hashes
+    - Saves quickly (doesn't block indexing)
+  - Function `load_checkpoint(path)`:
+    - Loads checkpoint
+    - Validates checkpoint integrity
+    - Returns checkpoint data or None
+  - Function `clear_checkpoint(path)`:
+    - Deletes checkpoint when complete
+  - Checkpoint structure:
+    ```json
+    {
+      "checkpoint_version": "1.0",
+      "started_at": "2024-01-01T12:00:00",
+      "last_updated": "2024-01-01T12:30:00",
+      "total_files": 10000,
+      "processed_files": 7500,
+      "processed_paths": ["file1.txt", "file2.jpg", ...],
+      "file_hashes": {"file1.txt": "abc123...", ...},
+      "current_batch": 75,
+      "total_batches": 100,
+      "status": "in_progress"
+    }
+    ```
 
-### Step 2.1: Basic Translation System
+**Why:** Essential for handling large file counts and allowing pause/resume
 
-**Goal:** Create translation system with JSON files (en, lv, ru), English default
-
-**Tasks:**
-1. Create `src/file_sorter/i18n/` directory:
-   ```
-   i18n/
-   ├── __init__.py
-   ├── translations.py
-   ├── en.json
-   ├── lv.json
-   └── ru.json
-   ```
-
-2. Create `en.json` (default):
-   ```json
-   {
-     "app": {
-       "title": "File Sorter",
-       "welcome": "Welcome to File Sorter"
-     },
-     "main_menu": {
-       "title": "Main Menu",
-       "start_indexing": "Start Indexing",
-       "settings": "Settings",
-       "help": "Help",
-       "exit": "Exit"
-     }
-   }
-   ```
-
-3. Create `lv.json` and `ru.json` with translations
-
-4. Create `translations.py`:
-   - Load JSON files
-   - Function `t(key, lang="en")` to get translation
-   - Function `set_language(lang)` to change language
-   - Load language from config
-
-5. Update `main.py`:
-   - Load translations
-   - Print welcome message using translations
-   - Print menu options using translations
-
-**Testing Instructions:**
-1. Run: `file-sorter`
-2. **Expected:** All text in English (default)
-3. Change config: `"language": "lv"` in config.json
-4. Run: `file-sorter`
-5. **Expected:** All text in Latvian
-6. Change config: `"language": "ru"`
-7. Run: `file-sorter`
-8. **Expected:** All text in Russian
-
-**Success Criteria:**
-- ✅ Translation files load correctly
-- ✅ Default language is English
-- ✅ Can switch languages via config
-- ✅ All UI text uses translations
+**Test:**
+- Start indexing → Checkpoint saved after each batch
+- Interrupt indexing → Checkpoint exists
+- Resume → Should continue from checkpoint
 
 ---
 
-## Phase 3: Basic TUI
+### Step 7: File Indexing with Checkpoint and Parallel Processing Integration
+- Create `src/file_sorter/core/parallel_executor.py`:
+  - Dynamic parallel processing system (reusable across codebase)
+  - Class `ParallelExecutor`:
+    - Configurable thread pool (from config: `thread_count`, default 4)
+    - Thread-safe progress tracking
+    - Function `execute_parallel(tasks, callback=None)`:
+      - Executes tasks in parallel
+      - Thread-safe progress updates
+      - Returns results in order
+      - Handles errors gracefully
+    - Function `execute_batch_parallel(batches, callback=None)`:
+      - Processes batches in parallel
+      - Thread-safe batch tracking
+      - Yields progress updates
+  - Easy to use: `executor.execute_parallel(file_tasks, progress_callback)`
+  - TUI-friendly: Progress callbacks work seamlessly with TUI updates
 
-### Step 3.1: Basic Textual Application
+- Create `src/file_sorter/core/indexer.py`:
+  - Function `index_directory(path, checkpoint=None)`:
+    - Recursively walks directory
+    - Uses `ParallelExecutor` for parallel file processing
+    - Processes files in batches (configurable, default 100)
+    - After each batch:
+      - Saves checkpoint
+      - Yields progress update (thread-safe)
+    - Collects: path, name, size, modified date, file hash
+    - Can pause/resume at any time
+    - Handles large file counts efficiently (10,000+ files)
+    - Parallel processing: Multiple files processed simultaneously
+  - Function `resume_indexing(checkpoint_path)`:
+    - Loads checkpoint
+    - Skips already processed files
+    - Continues from last batch with parallel processing
+  - Create `src/file_sorter/storage/index_storage.py`:
+    - Save/load index.json
+    - Include `indexed_at` timestamp
 
-**Goal:** Create basic Textual TUI application that starts and shows welcome screen
+**Why:** Parallel processing from start ensures system can handle large file counts efficiently and provides reusable infrastructure for future features
 
-**Tasks:**
-1. Update `requirements.txt`:
-   ```
-   textual>=0.50.0
-   rich>=13.0.0
-   ```
-
-2. Create `src/file_sorter/tui/app.py`:
-   - Basic Textual App class
-   - Welcome screen with title
-   - Exit on 'q' key
-
-3. Update `main.py`:
-   - Import and run Textual app
-   - Load language from config
-   - Show welcome message
-
-**Testing Instructions:**
-1. Run: `file-sorter`
-2. **Expected:** TUI window opens
-3. **Expected:** Shows welcome message
-4. Press 'q' to quit
-5. **Expected:** Application exits cleanly
-
-**Success Criteria:**
-- ✅ TUI application starts
-- ✅ Shows welcome screen
-- ✅ Can exit with 'q'
-- ✅ No errors
-
----
-
-### Step 3.2: Main Screen Layout (Top-like UI)
-
-**Goal:** Create main screen with header (top section) and content area (bottom section)
-
-**Tasks:**
-1. Create `src/file_sorter/tui/screens/main_screen.py`:
-   - Header widget (top section):
-     - Title: "File Sorter"
-     - Status: "Indexing: Not Started"
-     - System info placeholder
-   - Content area (bottom section):
-     - Placeholder text: "File list will appear here"
-   - Layout: Header takes ~20% height, content takes ~80%
-
-2. Update `app.py`:
-   - Set main_screen as initial screen
-
-**Testing Instructions:**
-1. Run: `file-sorter`
-2. **Expected:** Main screen shows with header and content area
-3. **Expected:** Header shows title and status
-4. **Expected:** Content area shows placeholder
-5. **Expected:** Layout looks like "top" command (header on top, content below)
-
-**Success Criteria:**
-- ✅ Main screen displays correctly
-- ✅ Layout matches "top" style
-- ✅ Header and content areas visible
-- ✅ No layout errors
+**Test:**
+- Start indexing → Multiple files processed simultaneously
+- Check CPU usage → Should use multiple cores
+- Progress updates → Should be thread-safe and accurate
+- Start indexing → Progress updates, checkpoint saved
+- Interrupt (Ctrl+C) → Checkpoint saved
+- Resume → Continues from checkpoint with parallel processing
+- Complete → Index saved, checkpoint deleted
 
 ---
 
-### Step 3.3: Language Selection Screen
+### Step 8: Indexing Status Check and TUI Integration
 
-**Goal:** Add language selection screen accessible from main menu
+### Step 8: Indexing Status Check and TUI Integration
+- Update main screen:
+  - On startup, check if `index.json` exists
+  - Check `indexed_at` timestamp
+  - If checkpoint exists → Offer to resume
+  - If no index → Show "Indexing: Not Started", block functions
+  - If indexed → Show "Indexing: Complete (Last: {timestamp})", enable functions
+- Create indexing screen (`tui/screens/indexing.py`):
+  - Top section: Progress bar, files processed/total, speed, ETA
+  - Bottom section: Live file processing table
+  - Updates in real-time (every 100-500ms)
+  - Can pause ('p'), resume ('r'), cancel ('c')
 
-**Tasks:**
-1. Create `src/file_sorter/tui/screens/language_select.py`:
-   - List of languages: English, Latvian, Russian
-   - Can select language with arrow keys
-   - Confirm with Enter
-   - Updates config and reloads translations
-
-2. Update main screen:
-   - Add menu option: "Change Language" (key 'l')
-   - Opens language selection screen
-
-**Testing Instructions:**
-1. Run: `file-sorter`
-2. Press 'l' for language selection
-3. **Expected:** Language selection screen opens
-4. Use arrow keys to select language
-5. Press Enter to confirm
-6. **Expected:** Returns to main screen
-7. **Expected:** All text in selected language
-8. Check config.json: `"language"` should be updated
-
-**Success Criteria:**
-- ✅ Language selection screen works
-- ✅ Can select language
-- ✅ Language changes immediately
-- ✅ Config updated correctly
+**Test:**
+- Fresh start → Functions blocked
+- Start indexing → Indexing screen shows progress
+- Pause → Can resume
+- Complete → Returns to main screen, functions enabled
 
 ---
 
-## Phase 4: Indexing System
+### Step 9: File Table Display
+- Create `src/file_sorter/tui/widgets/file_table.py`:
+  - DataTable widget
+  - Loads from `index.json`
+  - Columns: Name, Path, Type, Size, Modified
+  - Basic scrolling
+  - Shows "No files indexed" if empty
 
-### Step 4.1: Basic File Indexer (No Analysis)
-
-**Goal:** Create basic file indexer that lists all files recursively
-
-**Tasks:**
-1. Create `src/file_sorter/core/indexer.py`:
-   - Function `index_directory(path)`:
-     - Recursively walks directory
-     - Collects file paths, names, sizes, modification dates
-     - Returns list of file info dictionaries
-   - Basic structure (no analysis yet):
-     ```python
-     {
-       "path": "relative/path/to/file.txt",
-       "name": "file.txt",
-       "size": 1024,
-       "modified": "2024-01-01T10:00:00",
-       "is_directory": False
-     }
-     ```
-
-2. Create `src/file_sorter/storage/index_storage.py`:
-   - Function `save_index(index_data, path)`:
-     - Saves to `.file_sorter/index.json`
-     - Includes `indexed_at` timestamp
-   - Function `load_index(path)`:
-     - Loads index from `.file_sorter/index.json`
-     - Returns index data or None
-
-3. Update main screen:
-   - Add "Start Indexing" button/menu option
-   - When clicked, runs indexer
-   - Shows progress: "Indexing... X files found"
-   - Saves index when done
-
-**Testing Instructions:**
-1. Create test directory with files:
-   ```
-   test_files/
-   ├── file1.txt
-   ├── file2.jpg
-   └── subdir/
-       └── file3.pdf
-   ```
-2. Run: `file-sorter` from test_files directory
-3. Press key to start indexing (e.g., 'i')
-4. **Expected:** Shows "Indexing... X files found"
-5. **Expected:** After completion, shows "Indexing complete: 3 files"
-6. Check: `cat .file_sorter/index.json`
-7. **Expected:** JSON file contains all 3 files with paths, sizes, dates
-
-**Success Criteria:**
-- ✅ Can index directory recursively
-- ✅ Collects file paths, names, sizes, dates
-- ✅ Saves index to JSON
-- ✅ Can load index from JSON
-- ✅ Shows progress during indexing
+**Test:** After indexing → Table shows all files, can scroll
 
 ---
 
-### Step 4.2: Indexing Status Check
+### Step 10: LLM Integration (OpenAI ChatGPT-5.2)
+- Create `src/file_sorter/core/llm_client.py`:
+  - OpenAI client class
+  - Function `send_request(prompt, data, api_key)`:
+    - Formats request with file structure
+    - Sends to OpenAI API (ChatGPT-5.2)
+    - Handles errors with error_handler
+    - Returns response
+  - Function `prepare_request(index_data, user_instructions)`:
+    - Formats data as JSON
+    - Adds user instructions
+    - Returns JSON payload
+  - Error handling:
+    - API errors → Handled by error_handler
+    - Network errors → Retry with backoff
+    - Invalid responses → Request retry
+- Create LLM analysis screen:
+  - Shows JSON preview before sending
+  - User enters instructions: "How should I organize these files?"
+  - User confirms before sending
+  - Shows progress indicator
+  - Displays response
 
-**Goal:** Check indexing status on startup and block functions if not indexed
-
-**Tasks:**
-1. Update `main_screen.py`:
-   - On startup, check if `index.json` exists
-   - Check `indexed_at` timestamp
-   - If no index or incomplete:
-     - Show status: "Indexing: Not Started" or "Indexing: Incomplete"
-     - Block functions (gray out menu options)
-     - Show message: "Please start indexing first"
-   - If indexed:
-     - Show status: "Indexing: Complete (Last: {timestamp})"
-     - Enable all functions
-
-2. Add visual indicators:
-   - Disabled menu options appear grayed out
-   - Enabled options appear normal
-
-**Testing Instructions:**
-1. Run: `file-sorter` in new directory
-2. **Expected:** Status shows "Indexing: Not Started"
-3. **Expected:** Most menu options grayed out/disabled
-4. **Expected:** Only "Start Indexing" and "Settings" available
-5. Start indexing and complete it
-6. Restart: `file-sorter`
-7. **Expected:** Status shows "Indexing: Complete (Last: {date})"
-8. **Expected:** All menu options enabled
-
-**Success Criteria:**
-- ✅ Checks index status on startup
-- ✅ Shows correct status
-- ✅ Blocks functions when not indexed
-- ✅ Enables functions when indexed
-- ✅ Visual indicators work
+**Test:**
+- Enter API key in config
+- Click "Analyze with LLM"
+- Enter instructions
+- Preview JSON → Should show what will be sent
+- Send → Should get response from ChatGPT-5.2
+- Test error handling → Should handle API errors gracefully
 
 ---
 
-### Step 4.3: Batch Processing and Progress
+### Step 11: Advanced Conflict Resolution System
+- Create `src/file_sorter/core/conflict_resolver.py`:
+  - Centralized conflict resolution logic (reusable)
+  - Conflict types:
+    - File exists at destination
+    - Symlink encountered
+    - Hard link encountered
+    - Permission denied
+  - Function `resolve_conflict(conflict_type, source, destination, context)`:
+    - Detects conflict type
+    - Shows options to user:
+      - File exists: overwrite, skip, rename (with auto-numbering)
+      - Symlink: follow, ignore, treat as file
+      - Hard link: treat as separate, maintain link, skip
+    - Returns user choice
+    - Saves preference for similar conflicts
+  - Function `apply_resolution(choice, source, destination)`:
+    - Executes chosen resolution
+    - Handles edge cases
+  - Conflict resolution dialog:
+    - Shows conflict details
+    - Clear options
+    - Can set default for similar conflicts
+    - Preview what will happen
 
-**Goal:** Implement batch processing for large file counts (10000+)
+**Why:** Advanced conflict resolution is essential and reusable across the system
 
-**Tasks:**
-1. Update `indexer.py`:
-   - Process files in batches (configurable, default 100)
-   - After each batch, save checkpoint
-   - Show progress: "Processing batch X/Y (Z files processed)"
-   - Yield progress updates
-
-2. Create `src/file_sorter/storage/checkpoint_manager.py`:
-   - Function `save_checkpoint(progress_data, path)`:
-     - Saves to `.file_sorter/index_checkpoint.json`
-     - Includes: processed files list, batch number, total files
-   - Function `load_checkpoint(path)`:
-     - Loads checkpoint
-     - Returns checkpoint data or None
-
-3. Update main screen:
-   - Show progress during indexing
-   - Update every batch completion
-
-**Testing Instructions:**
-1. Create test directory with many files (or use existing large directory)
-2. Run: `file-sorter`
-3. Start indexing
-4. **Expected:** Shows progress: "Processing batch 1/10 (100 files processed)"
-5. **Expected:** Progress updates as batches complete
-6. Interrupt indexing (Ctrl+C)
-7. Check: `cat .file_sorter/index_checkpoint.json`
-8. **Expected:** Checkpoint file exists with progress data
-9. Restart: `file-sorter`
-10. **Expected:** Offers to resume from checkpoint
-
-**Success Criteria:**
-- ✅ Processes files in batches
-- ✅ Shows progress updates
-- ✅ Saves checkpoint after each batch
-- ✅ Can detect interrupted indexing
-- ✅ Checkpoint file created correctly
+**Test:**
+- Try to move file to existing destination → Should detect conflict
+- Choose resolution → Should apply correctly
+- Test symlink → Should handle correctly
+- Test hard link → Should handle correctly
+- Set preference → Should remember for similar conflicts
 
 ---
 
-### Step 4.4: Resume from Checkpoint
+### Step 12: Version System
+- Create `src/file_sorter/core/version_manager.py`:
+  - Function `create_version(description)`:
+    - Saves directory structure to `versions/vN.json`
+    - Includes timestamp, description
+    - Only saves structure (paths, names), not file contents
+  - Function `list_versions()`:
+    - Returns list of all versions with metadata
+  - Function `get_version(version_num)`:
+    - Loads version data
+  - Function `rollback_to_version(version_num)`:
+    - Loads version structure
+    - Compares with current
+    - Creates rollback plan
+    - Uses conflict_resolver for conflicts
+    - Returns operations needed
+- Create version list screen:
+  - Shows all versions
+  - Can select version to rollback
+  - Preview rollback changes
 
-**Goal:** Allow resuming indexing from checkpoint
-
-**Tasks:**
-1. Update `indexer.py`:
-   - Check for checkpoint on startup
-   - If checkpoint exists:
-     - Load processed files list
-     - Skip already processed files
-     - Continue from last batch
-   - Show resume option in UI
-
-2. Update main screen:
-   - If checkpoint exists, show: "Resume indexing? (y/n)"
-   - If yes, resume from checkpoint
-   - If no, start fresh (delete checkpoint)
-
-**Testing Instructions:**
-1. Start indexing in large directory
-2. Interrupt indexing (Ctrl+C)
-3. Restart: `file-sorter`
-4. **Expected:** Shows "Resume indexing? (y/n)"
-5. Press 'y'
-6. **Expected:** Resumes from checkpoint
-7. **Expected:** Skips already processed files
-8. **Expected:** Completes indexing
-9. **Expected:** Checkpoint deleted when complete
-
-**Success Criteria:**
-- ✅ Detects checkpoint on startup
-- ✅ Can resume from checkpoint
-- ✅ Skips already processed files
-- ✅ Completes indexing after resume
-- ✅ Checkpoint deleted on completion
+**Test:**
+- Create version → Should save to `versions/v1.json`
+- Make changes
+- Create version → Should save v2
+- Rollback to v1 → Should restore structure
+- Test conflicts during rollback → Should use conflict_resolver
 
 ---
 
-### Step 4.5: File Analysis (Surface-level)
+### Step 13: File Operations with Conflict Resolution
+- Create `src/file_sorter/core/file_operations.py`:
+  - Function `move_file(source, destination, conflict_resolver)`:
+    - Validates paths
+    - Checks for conflicts
+    - Uses conflict_resolver if conflict detected
+    - Moves file
+    - Returns success/error
+  - Function `rename_file(source, new_name, conflict_resolver)`:
+    - Similar to move_file
+  - Function `create_directory(path)`:
+    - Creates directory
+    - Handles errors
+  - Function `execute_operations(operations, conflict_resolver)`:
+    - Groups operations into transaction
+    - Validates all before execution
+    - Executes all operations
+    - Uses conflict_resolver for each conflict
+    - If any fails → rollback all
+    - Creates version before transaction
+- Create operation preview screen:
+  - Shows planned operations
+  - User confirms
+  - Executes operations
+  - Shows conflicts as they occur
+  - Uses conflict_resolver for each conflict
 
-**Goal:** Add surface-level file analysis (magic numbers, metadata, no full content)
-
-**Tasks:**
-1. Create `src/file_sorter/core/analyzer.py`:
-   - Function `analyze_file(file_path)`:
-     - Detects file type using magic numbers (python-magic or filetype)
-     - Extracts basic metadata (size, date)
-     - For text files: reads first 512 bytes only
-     - For images: extracts EXIF if available (Pillow)
-     - For audio: extracts ID3 tags if available (mutagen)
-     - Returns analysis dictionary
-
-2. Update `indexer.py`:
-   - Call analyzer for each file
-   - Add analysis results to index
-   - Skip content preview for large files (>10MB)
-
-3. Update index structure:
-   ```json
-   {
-     "file_type": "text/plain",
-     "mime_type": "text/plain",
-     "magic_number": "ASCII text",
-     "content_preview": "First 512 bytes...",
-     "metadata": {}
-   }
-   ```
-
-**Testing Instructions:**
-1. Create test files:
-   - `test.txt` (text file)
-   - `test.jpg` (image file)
-   - `test.mp3` (audio file, if available)
-2. Run indexing
-3. Check: `cat .file_sorter/index.json`
-4. **Expected:** Each file has `file_type`, `mime_type`, `magic_number`
-5. **Expected:** Text file has `content_preview` (first 512 bytes)
-6. **Expected:** Image file has EXIF metadata (if available)
-7. **Expected:** Large files (>10MB) don't have content_preview
-
-**Success Criteria:**
-- ✅ Detects file types correctly
-- ✅ Extracts metadata
-- ✅ Reads only first 512 bytes for text files
-- ✅ Skips content for large files
-- ✅ No full file content reading
+**Test:**
+- Get LLM recommendations
+- Preview operations → Should show all operations
+- Execute → Should handle conflicts using conflict_resolver
+- Test transaction rollback → Should rollback all on failure
 
 ---
 
-### Step 4.6: Parallel Processing
+### Step 14: Advanced Search (Multi-language)
+- Update `file_table.py`:
+  - Add search input field
+  - Function `search_files(query, language="en")`:
+    - Search by: name, type, path, content preview
+    - Multi-language support:
+      - Handles English, Latvian, Russian characters
+      - Fuzzy matching
+      - Case-insensitive
+    - Real-time filtering as user types
+  - Search highlighting:
+    - Highlights matching text in results
+  - Keyboard shortcut: '/' to focus search
 
-**Goal:** Implement parallel processing for faster indexing
+**Why:** Advanced search is important but can be added later in the workflow
 
-**Tasks:**
-1. Update `indexer.py`:
-   - Use `concurrent.futures.ThreadPoolExecutor`
-   - Process files in parallel (configurable thread count, default 4)
-   - Process batches in parallel
-   - Thread-safe progress tracking
-
-2. Update config:
-   - Add `thread_count` setting (default 4)
-
-**Testing Instructions:**
-1. Run indexing in directory with many files
-2. **Expected:** Multiple files processed simultaneously
-3. **Expected:** Faster than sequential processing
-4. **Expected:** Progress updates correctly
-5. Check CPU usage: should use multiple cores
-6. Test with different `thread_count` values (1, 4, 8)
-
-**Success Criteria:**
-- ✅ Processes files in parallel
-- ✅ Faster than sequential
-- ✅ Thread-safe progress tracking
-- ✅ Configurable thread count
-- ✅ No race conditions
+**Test:**
+- Press '/' → Search focused
+- Type "txt" → Should filter .txt files
+- Type "документ" (Russian) → Should find Russian file names
+- Type "faili" (Latvian) → Should find Latvian file names
+- Fuzzy search → "txt" should find "text", "document.txt"
 
 ---
 
-### Step 4.7: Incremental Indexing
+### Step 15: Multi-select Operations (Optional - Later)
+- Update `file_table.py`:
+  - Space key toggles selection
+  - Ctrl+A selects all visible
+  - Ctrl+D deselects all
+  - Visual indicator for selected files
+  - Show selected count
+- Update file operations:
+  - Can operate on multiple selected files
+  - Batch operations use conflict_resolver for each file
 
-**Goal:** Only re-index changed files on subsequent runs
+**Why:** Useful feature but can be added after core functionality works
 
-**Tasks:**
-1. Update `indexer.py`:
-   - Save file hash sums in index
-   - On next run:
-     - Compare modification dates first (fast)
-     - If date changed, compare hash
-     - Only re-index changed/new files
-     - Remove deleted files from index
-
-2. Update index structure:
-   ```json
-   {
-     "file_hash": "abc123...",
-     "indexed_at": "2024-01-01T10:00:00",
-     "modified_at": "2024-01-01T09:00:00"
-   }
-   ```
-
-**Testing Instructions:**
-1. Run indexing (creates initial index)
-2. Modify one file
-3. Delete one file
-4. Add one new file
-5. Run indexing again
-6. **Expected:** Only processes 3 files (1 modified, 1 new, detects 1 deleted)
-7. **Expected:** Much faster than full re-indexing
-8. Check index: should have updated data for changed files
-9. Check index: deleted file should be removed
-
-**Success Criteria:**
-- ✅ Detects changed files by date
-- ✅ Verifies with hash if needed
-- ✅ Only re-indexes changed/new files
-- ✅ Removes deleted files from index
-- ✅ Much faster than full indexing
+**Test:**
+- Select multiple files → Should highlight
+- Operate on selected → Should process all selected files
+- Conflicts → Should resolve each conflict
 
 ---
 
-## Phase 5: TUI Indexing Screen
+## Error Handling Details
 
-### Step 5.1: Real-time Indexing Screen
+### Error Types:
+1. **FileOperationError**: File not found, permission denied, disk full
+2. **LLMError**: API error, network error, invalid response
+3. **IndexingError**: File access error, checkpoint corruption
+4. **ConfigError**: Invalid config, missing API key
 
-**Goal:** Create indexing screen with real-time progress display (top-like UI)
+### Error Display:
+- **User sees**: "File not found: document.txt. Please check the file path."
+- **Developer sees**: 
+  ```
+  FileOperationError: File not found
+  Path: /path/to/document.txt
+  File: file_operations.py, Line: 45
+  Stack trace: ...
+  Context: {'operation': 'move', 'source': '...', 'destination': '...'}
+  ```
 
-**Tasks:**
-1. Create `src/file_sorter/tui/screens/indexing.py`:
-   - **Top section (header):**
-     - Progress bar
-     - Files processed / total files
-     - Processing speed (files/s)
-     - Estimated remaining time
-     - Current batch / total batches
-   - **Bottom section:**
-     - Live file processing table
-     - Shows files currently being processed
-     - Updates in real-time
-
-2. Update `main.py`:
-   - Navigate to indexing screen when "Start Indexing" clicked
-   - Run indexer in background
-   - Update UI with progress
-
-**Testing Instructions:**
-1. Run: `file-sorter`
-2. Start indexing
-3. **Expected:** Indexing screen opens
-4. **Expected:** Header shows progress bar, stats
-5. **Expected:** Bottom section shows files being processed
-6. **Expected:** Updates in real-time (every 100-500ms)
-7. **Expected:** Can see files appearing in table as processed
-8. **Expected:** When complete, transitions to main screen
-
-**Success Criteria:**
-- ✅ Indexing screen displays correctly
-- ✅ Shows real-time progress
-- ✅ Updates frequently
-- ✅ Shows files being processed
-- ✅ Transitions to main screen when complete
+### Error Recovery:
+- Suggests fixes: "Did you mean: /path/to/document.txt?"
+- Can retry operation
+- Rollback on critical errors
+- Logs all errors for debugging
 
 ---
 
-### Step 5.2: Pause/Resume Indexing
+## Translation System Details
 
-**Goal:** Allow pausing and resuming indexing
+### Structure:
+- All UI text in `en.json`
+- Easy to add `lv.json`, `ru.json` later
+- Language dropdown in settings (for future)
+- All error messages translatable
 
-**Tasks:**
-1. Update `indexing.py`:
-   - Add pause button/key ('p')
-   - When paused:
-     - Saves checkpoint immediately
-     - Shows "Paused" status
-     - Can resume ('r') or cancel ('c')
+### Example:
+```json
+{
+  "main_menu": {
+    "start_indexing": "Start Indexing",
+    "analyze_llm": "Analyze with LLM"
+  },
+  "errors": {
+    "file_not_found": "File not found: {path}"
+  }
+}
+```
 
-2. Update `indexer.py`:
-   - Check for pause flag periodically
-   - Save checkpoint when paused
-   - Can resume from pause point
-
-**Testing Instructions:**
-1. Start indexing
-2. Press 'p' to pause
-3. **Expected:** Indexing pauses
-4. **Expected:** Status shows "Paused"
-5. **Expected:** Checkpoint saved
-6. Press 'r' to resume
-7. **Expected:** Resumes from pause point
-8. **Expected:** Continues processing
-9. Press 'c' to cancel
-10. **Expected:** Cancels indexing, returns to main screen
-
-**Success Criteria:**
-- ✅ Can pause indexing
-- ✅ Saves checkpoint when paused
-- ✅ Can resume from pause
-- ✅ Can cancel indexing
-- ✅ State saved correctly
+Usage: `t("main_menu.start_indexing")` → "Start Indexing"
 
 ---
 
-## Phase 6: File Table Display
+## Conflict Resolution Details
 
-### Step 6.1: Basic File Table
+### Reusable Logic:
+- `conflict_resolver.py` handles all conflicts
+- Used by: file operations, rollback, any operation that might conflict
+- Consistent behavior across system
 
-**Goal:** Display indexed files in table format on main screen
+### Conflict Types:
+1. **File exists**: overwrite, skip, rename (auto-number: file_1.txt)
+2. **Symlink**: follow symlink, ignore symlink, treat as regular file
+3. **Hard link**: treat as separate file, maintain link, skip
+4. **Permission**: skip file, show warning
 
-**Tasks:**
-1. Create `src/file_sorter/tui/widgets/file_table.py`:
-   - DataTable widget
-   - Columns: Name, Path, Type, Size, Modified
-   - Loads data from index.json
-   - Displays all indexed files
-
-2. Update `main_screen.py`:
-   - Replace placeholder with file table
-   - Load index and display files
-   - Show "No files indexed" if index empty
-
-**Testing Instructions:**
-1. Index some files
-2. Return to main screen
-3. **Expected:** File table shows all indexed files
-4. **Expected:** Columns: Name, Path, Type, Size, Modified
-5. **Expected:** Can scroll through files
-6. **Expected:** Data matches index.json
-
-**Success Criteria:**
-- ✅ File table displays correctly
-- ✅ Shows all indexed files
-- ✅ Columns correct
-- ✅ Can scroll
-- ✅ Data accurate
+### User Experience:
+- Clear dialog showing conflict
+- Preview what will happen
+- Can set default for similar conflicts
+- Batch conflicts handled one by one
 
 ---
 
-### Step 6.2: Table Virtualization (Large Files)
+## Testing Checklist
 
-**Goal:** Handle large file counts (10000+) efficiently with virtualization
-
-**Tasks:**
-1. Update `file_table.py`:
-   - Use Textual's built-in virtualization
-   - Only render visible rows
-   - Lazy loading as user scrolls
-   - Efficient memory usage
-
-2. Test with large dataset:
-   - Create test directory with 10000+ files (or use existing)
-   - Index all files
-   - Display in table
-   - **Expected:** No lag, smooth scrolling
-   - **Expected:** Low memory usage
-
-**Testing Instructions:**
-1. Index large directory (10000+ files)
-2. Open main screen
-3. **Expected:** Table loads quickly
-4. **Expected:** Can scroll smoothly
-5. **Expected:** No freezing or lag
-6. Check memory usage: should be reasonable
-7. **Expected:** Only visible rows rendered
-
-**Success Criteria:**
-- ✅ Handles 10000+ files efficiently
-- ✅ Smooth scrolling
-- ✅ Low memory usage
-- ✅ No freezing
-- ✅ Virtualization works
-
----
-
-### Step 6.3: Sortable and Filterable Table
-
-**Goal:** Add sorting and filtering to file table
-
-**Tasks:**
-1. Update `file_table.py`:
-   - Click column header to sort
-   - Sort by: Name, Size, Type, Modified
-   - Add filter input
-   - Filter by: name, type, path
-
-2. Add keyboard shortcuts:
-   - 's' - sort menu
-   - 'f' - focus filter
-   - Arrow keys - navigate rows
-
-**Testing Instructions:**
-1. Display file table
-2. Click "Name" column header
-3. **Expected:** Sorts by name (ascending)
-4. Click again
-5. **Expected:** Sorts by name (descending)
-6. Press 'f' to focus filter
-7. Type "txt"
-8. **Expected:** Shows only .txt files
-9. Clear filter
-10. **Expected:** Shows all files again
-
-**Success Criteria:**
-- ✅ Can sort by columns
-- ✅ Sorting works correctly
-- ✅ Can filter files
-- ✅ Filter updates in real-time
-- ✅ Keyboard shortcuts work
-
----
-
-### Step 6.4: Multi-select Files
-
-**Goal:** Allow selecting multiple files for batch operations
-
-**Tasks:**
-1. Update `file_table.py`:
-   - Space key toggles selection
-   - Ctrl+A selects all visible
-   - Ctrl+D deselects all
-   - Visual indicator for selected files
-   - Show selected count
-
-**Testing Instructions:**
-1. Display file table
-2. Navigate to file with arrow keys
-3. Press Space
-4. **Expected:** File selected (highlighted)
-5. Navigate to another file
-6. Press Space
-7. **Expected:** Both files selected
-8. Press Ctrl+A
-9. **Expected:** All visible files selected
-10. Press Ctrl+D
-11. **Expected:** All deselected
-12. **Expected:** Selected count displayed
-
-**Success Criteria:**
-- ✅ Can select multiple files
-- ✅ Visual indicators work
-- ✅ Keyboard shortcuts work
-- ✅ Selected count displayed
-- ✅ Selection persists during navigation
-
----
-
-### Step 6.5: Smart Search
-
-**Goal:** Implement smart search with multi-language support
-
-**Tasks:**
-1. Update `file_table.py`:
-   - Search input field
-   - Search by: name, type, path, content preview
-   - Fuzzy matching
-   - Multi-language support (handles Latvian, Russian characters)
-
-2. Add search highlighting:
-   - Highlight matching text in results
-
-**Testing Instructions:**
-1. Display file table
-2. Press '/' to focus search
-3. Type "txt"
-4. **Expected:** Shows files matching "txt"
-5. Type "документ" (Russian)
-6. **Expected:** Finds files with Russian names
-7. Type "faili" (Latvian)
-8. **Expected:** Finds files with Latvian names
-9. Test fuzzy matching: "txt" should find "text", "document.txt"
-
-**Success Criteria:**
-- ✅ Search works correctly
-- ✅ Multi-language support
-- ✅ Fuzzy matching works
-- ✅ Highlights matches
-- ✅ Real-time filtering
-
----
-
-### Step 6.6: Detailed File Info View
-
-**Goal:** Show detailed file information on demand
-
-**Tasks:**
-1. Create detail view dialog:
-   - Opens when Enter pressed on file
-   - Shows: full path, size, type, metadata, content preview
-   - Can close with Esc
-
-2. Update `file_table.py`:
-   - Enter key opens detail view
-   - Shows detailed information
-
-**Testing Instructions:**
-1. Display file table
-2. Navigate to file
-3. Press Enter
-4. **Expected:** Detail view opens
-5. **Expected:** Shows full file information
-6. **Expected:** Shows metadata
-7. **Expected:** Shows content preview (if available)
-8. Press Esc
-9. **Expected:** Closes detail view
-
-**Success Criteria:**
-- ✅ Detail view opens correctly
-- ✅ Shows complete information
-- ✅ Can close detail view
-- ✅ Information accurate
-
----
-
-### Step 6.7: Ignored Files Section
-
-**Goal:** Show ignored files (matching exceptions) in separate section
-
-**Tasks:**
-1. Create exceptions system (see Step 7.1)
-2. Update `file_table.py`:
-   - Add tab/section for "Ignored Files"
-   - Show files matching exceptions
-   - Visual distinction (grayed out or different color)
-
-**Testing Instructions:**
-1. Create exceptions (mark some files/directories as ignored)
-2. Index directory
-3. Display file table
-4. Switch to "Ignored Files" tab
-5. **Expected:** Shows ignored files
-6. **Expected:** Visual distinction from normal files
-7. Switch back to normal files
-8. **Expected:** Ignored files not shown
-
-**Success Criteria:**
-- ✅ Ignored files section exists
-- ✅ Shows correct files
-- ✅ Visual distinction
-- ✅ Can switch between sections
-
----
-
-## Phase 7: Exceptions System
-
-### Step 7.1: Exceptions Management
-
-**Goal:** Create system to mark files/directories/extensions as ignored
-
-**Tasks:**
-1. Create `src/file_sorter/core/exceptions_manager.py`:
-   - Load/save `exceptions.json`
-   - Structure:
-     ```json
-     {
-       "directories": ["path/to/dir"],
-       "files": ["path/to/file"],
-       "extensions": [".pdf", ".docx"],
-       "patterns": ["*secret*"]
-     }
-     ```
-
-2. Create exceptions management screen:
-   - Add directory to exceptions
-   - Add file to exceptions
-   - Add extension to exceptions
-   - Add pattern to exceptions
-   - Remove exceptions
-   - List all exceptions
-
-3. Update indexer:
-   - Check exceptions before indexing
-   - Skip files matching exceptions
-
-**Testing Instructions:**
-1. Open exceptions management
-2. Add directory to exceptions
-3. **Expected:** Directory added to exceptions.json
-4. Add extension ".pdf" to exceptions
-5. **Expected:** Extension added
-6. Start indexing
-7. **Expected:** PDF files skipped
-8. **Expected:** Exception directory skipped
-9. Check ignored files section
-10. **Expected:** Shows skipped files
-
-**Success Criteria:**
-- ✅ Can add exceptions
-- ✅ Exceptions saved to JSON
-- ✅ Indexer skips exceptions
-- ✅ Ignored files shown separately
-- ✅ Exceptions persist across sessions
-
----
-
-## Phase 8: Version Management
-
-### Step 8.1: Basic Version System
-
-**Goal:** Create version system that saves directory structure before changes
-
-**Tasks:**
-1. Create `src/file_sorter/core/version_manager.py`:
-   - Function `create_version(description)`:
-     - Saves current directory structure to `versions/vN.json`
-     - Includes timestamp, description
-     - Only saves structure (paths, names), not file contents
-   - Function `list_versions()`:
-     - Returns list of all versions
-   - Function `get_version(version_num)`:
-     - Loads version data
-
-2. Create `src/file_sorter/storage/version_storage.py`:
-   - Save/load version files
-   - Compress versions (gzip)
-
-3. Update main screen:
-   - Show version list
-   - Create version before operations
-
-**Testing Instructions:**
-1. Index some files
-2. Create version: "Initial state"
-3. **Expected:** Version created in `versions/v1.json`
-4. Check version file
-5. **Expected:** Contains directory structure
-6. Make some changes (manually, for now)
-7. Create version: "After changes"
-8. **Expected:** Version v2 created
-9. List versions
-10. **Expected:** Shows both versions
-
-**Success Criteria:**
-- ✅ Can create versions
-- ✅ Versions saved correctly
-- ✅ Can list versions
-- ✅ Can load version data
-- ✅ Versions compressed
-
----
-
-### Step 8.2: Version Optimization
-
-**Goal:** Optimize version storage (incremental, compression)
-
-**Tasks:**
-1. Update `version_manager.py`:
-   - Incremental storage: only save changes from previous version
-   - Gzip compression for version files
-   - Smart storage: split large directories if needed
-
-2. Test with large directory:
-   - Create version
-   - **Expected:** Version file is compressed
-   - **Expected:** Only stores changes (if incremental)
-   - **Expected:** File size reasonable
-
-**Testing Instructions:**
-1. Create version in large directory
-2. Check version file size
-3. **Expected:** Compressed (smaller than uncompressed)
-4. Create second version with small changes
-5. **Expected:** Only stores changes (if incremental)
-6. **Expected:** File size much smaller
-
-**Success Criteria:**
-- ✅ Versions compressed
-- ✅ Incremental storage works (if implemented)
-- ✅ File sizes reasonable
-- ✅ Can still load versions correctly
-
----
-
-### Step 8.3: Rollback Functionality
-
-**Goal:** Implement rollback to previous version
-
-**Tasks:**
-1. Update `version_manager.py`:
-   - Function `rollback_to_version(version_num)`:
-     - Loads version structure
-     - Compares with current structure
-     - Creates plan to restore structure
-     - Returns operations needed
-
-2. Create rollback preview screen:
-   - Shows what will be changed
-   - User confirms
-   - Executes rollback
-
-3. Update file operations:
-   - Use rollback to restore files
-
-**Testing Instructions:**
-1. Create version v1
-2. Make changes (add/delete/move files)
-3. Create version v2
-4. Rollback to v1
-5. **Expected:** Shows preview of changes
-6. Confirm rollback
-7. **Expected:** Files restored to v1 state
-8. **Expected:** New version v3 created (rollback operation)
-
-**Success Criteria:**
-- ✅ Can rollback to version
-- ✅ Shows preview before rollback
-- ✅ Restores structure correctly
-- ✅ Creates new version for rollback
-- ✅ Files restored accurately
-
----
-
-## Phase 9: LLM Integration
-
-### Step 9.1: LLM Client Basic Structure
-
-**Goal:** Create LLM client with support for multiple providers
-
-**Tasks:**
-1. Create `src/file_sorter/core/llm_client.py`:
-   - Base LLM client class
-   - Provider classes: OpenAI, Anthropic, Ollama, Custom
-   - Function `send_request(prompt, data)`:
-     - Formats request
-     - Sends to provider
-     - Returns response
-
-2. Update config:
-   - LLM provider settings
-   - API key storage (encrypted or secure)
-
-3. Create LLM settings screen:
-   - Select provider
-   - Enter API key
-   - Test connection
-
-**Testing Instructions:**
-1. Open LLM settings
-2. Select provider (e.g., Ollama)
-3. Enter API key (if needed)
-4. Test connection
-5. **Expected:** Connection successful
-6. Save settings
-7. Check config.json
-8. **Expected:** Provider and key saved (key encrypted if possible)
-
-**Success Criteria:**
-- ✅ Can select provider
-- ✅ Can enter API key
-- ✅ Connection test works
-- ✅ Settings saved
-- ✅ API key stored securely
-
----
-
-### Step 9.2: LLM Request Preparation
-
-**Goal:** Prepare data to send to LLM (structure, metadata, user instructions)
-
-**Tasks:**
-1. Update `llm_client.py`:
-   - Function `prepare_request(index_data, options)`:
-     - Filters private files (exceptions)
-     - Formats data based on options:
-       - Structure only
-       - Structure + metadata
-       - Structure + metadata + previews
-     - Adds user instructions
-     - Returns JSON payload
-
-2. Create request preview screen:
-   - Shows JSON that will be sent
-   - User can review
-   - User can add custom instructions
-   - User confirms before sending
-
-**Testing Instructions:**
-1. Index files
-2. Open LLM analysis
-3. Select data to send (structure only)
-4. **Expected:** Shows JSON preview
-5. **Expected:** Private files not included
-6. Add custom instructions: "Organize by file type"
-7. **Expected:** Instructions added to request
-8. Review JSON
-9. **Expected:** JSON formatted correctly
-10. **Expected:** Only selected data included
-
-**Success Criteria:**
-- ✅ Prepares request correctly
-- ✅ Filters private files
-- ✅ Shows JSON preview
-- ✅ User can add instructions
-- ✅ User can review before sending
-
----
-
-### Step 9.3: LLM Response Handling
-
-**Goal:** Send request to LLM and handle response
-
-**Tasks:**
-1. Update `llm_client.py`:
-   - Send request to provider
-   - Handle errors (retry, fallback)
-   - Parse response
-   - Validate response format
-
-2. Create response screen:
-   - Shows LLM response
-   - Validates format
-   - If invalid, request retry
-   - Option to save request/response
-
-**Testing Instructions:**
-1. Prepare LLM request
-2. Send to LLM
-3. **Expected:** Shows progress indicator
-4. **Expected:** Receives response
-5. **Expected:** Response displayed
-6. Test with invalid response (mock)
-7. **Expected:** Validates format
-8. **Expected:** Requests retry if invalid
-9. Test save option
-10. **Expected:** Request/response saved locally
-
-**Success Criteria:**
-- ✅ Sends request correctly
-- ✅ Handles errors gracefully
-- ✅ Parses response
-- ✅ Validates format
-- ✅ Can save request/response
-- ✅ Can retry on error
-
----
-
-### Step 9.4: LLM Response Validation and Format
-
-**Goal:** Ensure LLM returns data in correct format
-
-**Tasks:**
-1. Update `llm_client.py`:
-   - Define expected response format:
-     ```json
-     {
-       "operations": [
-         {"type": "move", "source": "...", "destination": "..."},
-         {"type": "rename", "source": "...", "destination": "..."},
-         {"type": "create_directory", "path": "..."}
-       ]
-     }
-     ```
-   - Validate response matches format
-   - If invalid, send format instructions to LLM
-   - Request retry with clearer instructions
-
-2. Update LLM prompt:
-   - Include format requirements
-   - Request concise response
-   - Request clear instructions
-
-**Testing Instructions:**
-1. Send request to LLM
-2. **Expected:** Response in correct format
-3. Test with mock invalid response
-4. **Expected:** Detects invalid format
-5. **Expected:** Sends format instructions
-6. **Expected:** Requests retry
-7. **Expected:** Retry returns valid format
-
-**Success Criteria:**
-- ✅ Response format validated
-- ✅ Invalid responses detected
-- ✅ Format instructions sent
-- ✅ Retry works
-- ✅ Response format correct
-
----
-
-## Phase 10: File Operations
-
-### Step 10.1: Basic File Operations
-
-**Goal:** Implement file move, rename, directory creation
-
-**Tasks:**
-1. Create `src/file_sorter/core/file_operations.py`:
-   - Function `move_file(source, destination)`:
-     - Validates paths
-     - Moves file
-     - Returns success/error
-   - Function `rename_file(source, new_name)`:
-     - Renames file
-     - Returns success/error
-   - Function `create_directory(path)`:
-     - Creates directory
-     - Returns success/error
-
-2. Create operation preview screen:
-   - Shows planned operations
-   - User confirms
-   - Executes operations
-
-**Testing Instructions:**
-1. Get LLM recommendations (or create manually)
-2. Preview operations
-3. **Expected:** Shows list of operations
-4. Confirm execution
-5. **Expected:** Files moved/renamed
-6. **Expected:** Directories created
-7. Check file system
-8. **Expected:** Changes applied correctly
-
-**Success Criteria:**
-- ✅ Can move files
-- ✅ Can rename files
-- ✅ Can create directories
-- ✅ Operations execute correctly
-- ✅ Preview works
-
----
-
-### Step 10.2: Conflict Resolution
-
-**Goal:** Handle file conflicts (already exists, symlinks, hard links)
-
-**Tasks:**
-1. Update `file_operations.py`:
-   - Check for conflicts before operation
-   - Detect: file exists, symlinks, hard links
-   - Ask user what to do:
-     - File exists: overwrite, skip, rename
-     - Symlink: follow, ignore, treat as file
-     - Hard link: treat as separate, maintain link, skip
-
-2. Create conflict resolution dialog:
-   - Shows conflict details
-   - User chooses action
-   - Saves preference for future
-
-**Testing Instructions:**
-1. Create test scenario:
-   - File exists at destination
-   - Symlink exists
-   - Hard link exists
-2. Attempt operation
-3. **Expected:** Conflict detected
-4. **Expected:** Dialog shows options
-5. Choose action
-6. **Expected:** Operation proceeds with chosen action
-7. Test preference saving
-8. **Expected:** Preference saved in config
-
-**Success Criteria:**
-- ✅ Detects conflicts
-- ✅ Shows options
-- ✅ User can choose action
-- ✅ Preference saved
-- ✅ Operations proceed correctly
-
----
-
-### Step 10.3: Atomic Operations
-
-**Goal:** Implement transaction-like behavior (all or nothing)
-
-**Tasks:**
-1. Update `file_operations.py`:
-   - Group operations into transaction
-   - Validate all operations before execution
-   - Execute all operations
-   - If any fails, rollback all
-   - Create version before transaction
-
-2. Test rollback:
-   - Create transaction with multiple operations
-   - Make one operation fail (e.g., permission error)
-   - **Expected:** All operations rolled back
-   - **Expected:** Previous state restored
-
-**Testing Instructions:**
-1. Create version v1
-2. Plan multiple operations
-3. Execute transaction
-4. **Expected:** All operations succeed or all rollback
-5. Test with failure:
-   - Create operation that will fail
-   - Execute transaction
-6. **Expected:** All operations rolled back
-7. **Expected:** State restored to v1
-
-**Success Criteria:**
-- ✅ Operations grouped into transactions
-- ✅ All succeed or all rollback
-- ✅ Rollback works correctly
-- ✅ State consistent
-- ✅ Version created before operations
-
----
-
-### Step 10.4: Permission Handling
-
-**Goal:** Handle files without read permissions
-
-**Tasks:**
-1. Update `indexer.py`:
-   - Try to access file
-   - If permission error, skip file
-   - Log skipped files
-   - Show in ignored files section
-
-2. Update `file_operations.py`:
-   - Check permissions before operations
-   - Skip files without permissions
-   - Show warning
-
-**Testing Instructions:**
-1. Create file without read permission (chmod 000)
-2. Run indexing
-3. **Expected:** File skipped
-4. **Expected:** Logged as skipped
-5. **Expected:** Shown in ignored files section
-6. Try to operate on file
-7. **Expected:** Operation skipped
-8. **Expected:** Warning shown
-
-**Success Criteria:**
-- ✅ Files without permissions skipped
-- ✅ Logged correctly
-- ✅ Shown in ignored section
-- ✅ Operations skip correctly
-- ✅ Warnings shown
-
----
-
-## Phase 11: Integration and Polish
-
-### Step 11.1: Complete Workflow Integration
-
-**Goal:** Integrate all components into complete workflow
-
-**Tasks:**
-1. Connect all screens:
-   - Main screen → Indexing → LLM Analysis → Preview → Execution
-   - Main screen → Version List → Rollback
-   - Main screen → Settings → Language/LLM/Exceptions
-
-2. Test complete workflow:
-   - Index files
-   - Analyze with LLM
-   - Preview changes
-   - Execute operations
-   - Create version
-   - Rollback if needed
-
-**Testing Instructions:**
-1. Run complete workflow:
-   - Start indexing
-   - Wait for completion
-   - Analyze with LLM
-   - Review recommendations
-   - Preview changes
-   - Execute operations
-   - Verify changes
-   - Rollback if needed
-2. **Expected:** All steps work correctly
-3. **Expected:** Smooth transitions
-4. **Expected:** No errors
-
-**Success Criteria:**
-- ✅ Complete workflow works
-- ✅ All screens connected
-- ✅ Transitions smooth
-- ✅ No errors
-- ✅ State consistent
-
----
-
-### Step 11.2: Error Handling and Recovery
-
-**Goal:** Add comprehensive error handling
-
-**Tasks:**
-1. Add error handling to all components:
-   - File operations errors
-   - LLM API errors
-   - Indexing errors
-   - Network errors
-
-2. Create error recovery:
-   - Rollback on failure
-   - Retry mechanisms
-   - User-friendly error messages
-
-**Testing Instructions:**
-1. Test error scenarios:
-   - File operation fails
-   - LLM API fails
-   - Network error
-   - Disk full
-2. **Expected:** Errors handled gracefully
-3. **Expected:** User-friendly messages
-4. **Expected:** Recovery works
-5. **Expected:** No crashes
-
-**Success Criteria:**
-- ✅ Errors handled gracefully
-- ✅ User-friendly messages
-- ✅ Recovery works
-- ✅ No crashes
-- ✅ State preserved
-
----
-
-### Step 11.3: Performance Optimization
-
-**Goal:** Optimize performance for large directories
-
-**Tasks:**
-1. Profile application:
-   - Identify bottlenecks
-   - Optimize slow operations
-   - Improve memory usage
-
-2. Test with large dataset:
-   - 10000+ files
-   - Large files
-   - Deep directory structure
-
-**Testing Instructions:**
-1. Test with large directory (10000+ files)
-2. **Expected:** Indexing completes in reasonable time
-3. **Expected:** TUI responsive
-4. **Expected:** Memory usage reasonable
-5. **Expected:** No freezing
-
-**Success Criteria:**
-- ✅ Handles large directories
-- ✅ Responsive TUI
-- ✅ Reasonable memory usage
-- ✅ No performance issues
-
----
-
-### Step 11.4: Final Testing and Documentation
-
-**Goal:** Complete testing and documentation
-
-**Tasks:**
-1. Comprehensive testing:
-   - All features
-   - Edge cases
-   - Error scenarios
-   - Performance
-
-2. Update documentation:
-   - User guide
-   - Developer guide
-   - README
-   - API documentation
-
-**Testing Instructions:**
-1. Test all features systematically
-2. Test edge cases
-3. Test error scenarios
-4. **Expected:** All features work
-5. **Expected:** Documentation complete
-
-**Success Criteria:**
-- ✅ All features tested
-- ✅ Edge cases handled
-- ✅ Documentation complete
-- ✅ Ready for release
-
----
-
-## Testing Checklist for Each Step
-
-After completing each step, verify:
-
+After each step:
 - [ ] Code runs without errors
-- [ ] New functionality works as expected
-- [ ] Previous functionality still works
-- [ ] No regressions introduced
-- [ ] Error handling works
-- [ ] User experience is smooth
-- [ ] Performance is acceptable
+- [ ] New feature works
+- [ ] Previous features still work
+- [ ] Error handling works correctly
+- [ ] Can test manually
+- [ ] Error messages are user-friendly
+- [ ] Developer details available
 
 ---
 
-## Notes
+## Summary
 
-- **Each step is independent:** You can test each step before moving to the next
-- **Build incrementally:** Each step builds on previous steps
-- **Test thoroughly:** Test each step manually before proceeding
-- **Fix issues early:** Don't proceed if current step has issues
-- **Document as you go:** Update documentation with each step
+**Total Steps: 15** (core: 14, optional: 1)
+
+**Core Features:**
+- ✅ Translation system foundation (English, ready for i18n)
+- ✅ Advanced checkpoint system (pause/resume, large files)
+- ✅ Dynamic error handling (user + developer views)
+- ✅ **Parallel processing system** (dynamic, reusable, TUI-friendly) - from the start
+- ✅ Advanced conflict resolution (reusable, comprehensive)
+- ✅ LLM integration (OpenAI ChatGPT-5.2)
+- ✅ Version control with rollback
+- ✅ File operations with conflict handling
+
+**Later Features:**
+- Advanced search (Step 14)
+- Multi-select (Step 15)
+
+**Estimated Time:** 3-5 days for experienced developer, 1-2 weeks for learning
 
 ---
 
-**Ready to start implementation? Begin with Step 1.1 and work through each step systematically!**
+**Ready to start? Begin with Step 1 and work through systematically!**
 
