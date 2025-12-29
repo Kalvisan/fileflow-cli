@@ -1,5 +1,5 @@
 ---
-name: File Sorter TUI System
+name: FileFlowCLI TUI System
 overview: Create a Python TUI tool with Textual library that helps organize files and directories using LLM analysis, with version control system and multi-language support.
 todos:
   - id: setup_project
@@ -11,7 +11,7 @@ todos:
     dependencies:
       - setup_project
   - id: config_system
-    content: Create configuration system (.file_sorter/config.json) with LLM settings
+    content: Create configuration system (.fileflow_cli/config.json) with LLM settings
     status: pending
     dependencies:
       - setup_project
@@ -124,7 +124,7 @@ todos:
     dependencies:
       - tui_screens
   - id: pip_package
-    content: Create setup.py and pyproject.toml for pip package with entry point 'file-sorter'
+    content: Create setup.py and pyproject.toml for pip package with entry point 'fileflow-cli'
     status: pending
     dependencies:
       - setup_project
@@ -207,7 +207,7 @@ todos:
     dependencies:
       - setup_project
   - id: environment_variables
-    content: Implement environment variable support - FILE_SORTER_CONFIG_PATH, FILE_SORTER_LOG_LEVEL, FILE_SORTER_DATA_DIR, FILE_SORTER_LANGUAGE
+    content: Implement environment variable support - FILEFLOW_CLI_CONFIG_PATH, FILEFLOW_CLI_LOG_LEVEL, FILEFLOW_CLI_DATA_DIR, FILEFLOW_CLI_LANGUAGE
     status: pending
     dependencies:
       - config_system
@@ -265,7 +265,7 @@ todos:
       - documentation
 ---
 
-# File Sorter TUI System - Plan
+# FileFlowCLI TUI System - Plan
 
 ## System Architecture
 
@@ -306,7 +306,7 @@ flowchart TD
 ## Project Structure
 
 ```
-File_Sorter/
+FileFlowCLI/
 ├── src/
 │   ├── __init__.py
 │   ├── main.py                 # Main entry point
@@ -357,7 +357,7 @@ File_Sorter/
 │       ├── cli.py               # Command line argument parsing
 │       ├── backup.py            # Backup and restore utilities
 │       └── migration.py         # Data migration utilities
-├── .file_sorter/               # Hidden directory (created in working directory)
+├── .fileflow_cli/               # Hidden directory (created in working directory)
 │   ├── index.json              # Index data (may be split into multiple files for large directories)
 │   ├── index_checkpoint.json   # Checkpoint for indexing (progress saving)
 │   ├── index_lock              # Lock file to prevent parallel indexing
@@ -440,13 +440,13 @@ File_Sorter/
 
 ### 1. Indexing System (`core/indexer.py`)
 
-- **Directory Selection and .file_sorter Creation:**
-  - On program launch, creates empty `.file_sorter/` directory in current working directory
+- **Directory Selection and .fileflow_cli Creation:**
+  - On program launch, creates empty `.fileflow_cli/` directory in current working directory
   - This marks that the tool has been run in this directory
   - By default, tool works only in the opened directory
-  - If user opens a subdirectory, checks parent directories for existing `.file_sorter/`
-  - If found in parent, offers to use that `.file_sorter/` instead
-  - Each directory can have its own `.file_sorter/` or share parent's
+  - If user opens a subdirectory, checks parent directories for existing `.fileflow_cli/`
+  - If found in parent, offers to use that `.fileflow_cli/` instead
+  - Each directory can have its own `.fileflow_cli/` or share parent's
 
 - **Indexing only when TUI is opened:**
   - Indexing is **NOT automatic** - user must start it manually from TUI
@@ -966,13 +966,13 @@ File_Sorter/
    - Program starts with **English by default**
    - **Directory Selection:**
      - Program runs in current working directory (where it's launched)
-     - Creates empty `.file_sorter/` directory in current directory
+     - Creates empty `.fileflow_cli/` directory in current directory
      - This marks that tool has been run in this directory
      - **By default:** Tool works only in opened directory
      - **If user opens subdirectory:**
-       - Check parent directories for existing `.file_sorter/`
-       - If found in parent, offer to use that `.file_sorter/` instead
-       - User can choose: use parent's `.file_sorter/` or create new one
+       - Check parent directories for existing `.fileflow_cli/`
+       - If found in parent, offer to use that `.fileflow_cli/` instead
+       - User can choose: use parent's `.fileflow_cli/` or create new one
    - **Opens TUI immediately** - no automatic indexing
    - **Indexing status check on TUI launch:**
      - Reads `index.json` to get `indexed_at` timestamp and `indexing_status`
@@ -1106,7 +1106,7 @@ File_Sorter/
      - **Save Request/Response (Optional):**
        - Option to save request and response locally
        - Not prominent, but available
-       - Saved in `.file_sorter/logs/` or similar location
+       - Saved in `.fileflow_cli/logs/` or similar location
 
 5. **Preview and Execution:**
    - Shows planned changes (move, rename, create directory)
@@ -1260,7 +1260,7 @@ File_Sorter/
 ```json
 {
   "main_menu": {
-    "title": "File Sorter - Main Menu",
+    "title": "FileFlowCLI - Main Menu",
     "analyze": "Analyze with LLM",
     "view_index": "View Index",
     "rollback": "Rollback to Version",
@@ -1318,7 +1318,7 @@ File_Sorter/
 ### Privacy Guarantees
 
 - **EVERYTHING stored locally:**
-  - Index stored only in `.file_sorter/` directory on user's computer
+  - Index stored only in `.fileflow_cli/` directory on user's computer
   - Version history stored locally
   - No external server calls without user permission
   - No telemetry or analytics
@@ -1420,7 +1420,7 @@ Program will be distributed with installation scripts for all operating systems:
    - If no Python, shows detailed instructions with link to python.org
    - Installs pip if not present
    - Installs program with `pip install -e .`
-   - Creates `file-sorter` command in system
+   - Creates `fileflow-cli` command in system
 
 2. **Windows CMD:** `install.bat`
    - Checks for Python presence
@@ -1442,10 +1442,10 @@ flowchart TD
     ShowGuide --> Exit[Exit with instructions]
     CheckVersion -->|Yes| CheckPip{pip installed?}
     CheckVersion -->|No| ShowUpgrade[Show how to upgrade Python]
-    CheckPip -->|Yes| InstallPackage[Install file-sorter with pip]
+    CheckPip -->|Yes| InstallPackage[Install fileflow-cli with pip]
     CheckPip -->|No| InstallPip[Install pip]
     InstallPip --> InstallPackage
-    InstallPackage --> CreateCommand[Create file-sorter command]
+    InstallPackage --> CreateCommand[Create fileflow-cli command]
     CreateCommand --> Success[Installation complete]
     Success --> RunApp[Launch program]
 ```
@@ -1453,9 +1453,9 @@ flowchart TD
 ### Pip Package (`setup.py` / `pyproject.toml`)
 
 Program will be available as pip package:
-- Installation: `pip install file-sorter` or `pip install -e .` (development)
-- Launch: `file-sorter` command in any terminal
-- Entry point: `src/main.py` as `file-sorter` command
+- Installation: `pip install fileflow-cli` or `pip install -e .` (development)
+- Launch: `fileflow-cli` command in any terminal
+- Entry point: `src/main.py` as `fileflow-cli` command
 
 ### Python Version Check (`scripts/check_python.py`)
 
@@ -1475,7 +1475,7 @@ Program will be available as pip package:
 
 After installation user can:
 1. Open terminal
-2. Type `file-sorter`
+2. Type `fileflow-cli`
 3. Program launches and asks to select directory to work with
 
 ### Simple Installation Command
@@ -1484,12 +1484,12 @@ Users can install with one command:
 
 **Linux/MacOS:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/user/file-sorter/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/user/fileflow-cli/main/install.sh | bash
 ```
 
 **Windows PowerShell:**
 ```powershell
-iwr -useb https://raw.githubusercontent.com/user/file-sorter/main/install.ps1 | iex
+iwr -useb https://raw.githubusercontent.com/user/fileflow-cli/main/install.ps1 | iex
 ```
 
 **Or manually:**
@@ -1525,7 +1525,7 @@ iwr -useb https://raw.githubusercontent.com/user/file-sorter/main/install.ps1 | 
   - Context information: operation, file path, user action
 
 - **Log Storage:**
-  - Logs stored in `.file_sorter/logs/` directory
+  - Logs stored in `.fileflow_cli/logs/` directory
   - Log rotation: daily rotation, keep last 30 days
   - Separate log files: application.log, errors.log, debug.log
 
@@ -1843,25 +1843,25 @@ iwr -useb https://raw.githubusercontent.com/user/file-sorter/main/install.ps1 | 
 ### Command Line Arguments
 
 - **`--directory` / `-d`**: Specify target directory to work with
-  - Example: `file-sorter --directory /path/to/directory`
+  - Example: `fileflow-cli --directory /path/to/directory`
   - If not specified, prompts user in TUI
 
 - **`--config` / `-c`**: Specify custom config file path
-  - Example: `file-sorter --config /path/to/config.json`
-  - Default: `.file_sorter/config.json` in target directory
+  - Example: `fileflow-cli --config /path/to/config.json`
+  - Default: `.fileflow_cli/config.json` in target directory
 
 - **`--verbose` / `-v`**: Enable verbose logging
   - Shows detailed operation logs
   - Useful for debugging
-  - Example: `file-sorter --verbose`
+  - Example: `fileflow-cli --verbose`
 
 - **`--version`**: Show version information
   - Displays version number and exit
-  - Example: `file-sorter --version`
+  - Example: `fileflow-cli --version`
 
 - **`--help` / `-h`**: Show help message
   - Displays usage information and exit
-  - Example: `file-sorter --help`
+  - Example: `fileflow-cli --help`
 
 - **`--no-tui`**: Run in non-interactive mode (future feature)
   - For scripting and automation
@@ -1869,47 +1869,47 @@ iwr -useb https://raw.githubusercontent.com/user/file-sorter/main/install.ps1 | 
 
 ### Environment Variables
 
-- **`FILE_SORTER_CONFIG_PATH`**: Override default config file location
-  - Example: `export FILE_SORTER_CONFIG_PATH=/custom/path/config.json`
+- **`FILEFLOW_CLI_CONFIG_PATH`**: Override default config file location
+  - Example: `export FILEFLOW_CLI_CONFIG_PATH=/custom/path/config.json`
 
-- **`FILE_SORTER_LOG_LEVEL`**: Set logging level
+- **`FILEFLOW_CLI_LOG_LEVEL`**: Set logging level
   - Values: DEBUG, INFO, WARNING, ERROR, CRITICAL
-  - Example: `export FILE_SORTER_LOG_LEVEL=DEBUG`
+  - Example: `export FILEFLOW_CLI_LOG_LEVEL=DEBUG`
 
-- **`FILE_SORTER_DATA_DIR`**: Override default data directory (`.file_sorter/`)
-  - Example: `export FILE_SORTER_DATA_DIR=/custom/data/path`
+- **`FILEFLOW_CLI_DATA_DIR`**: Override default data directory (`.fileflow_cli/`)
+  - Example: `export FILEFLOW_CLI_DATA_DIR=/custom/data/path`
 
-- **`FILE_SORTER_LANGUAGE`**: Set default language
+- **`FILEFLOW_CLI_LANGUAGE`**: Set default language
   - Values: en, lv, ru
-  - Example: `export FILE_SORTER_LANGUAGE=lv`
+  - Example: `export FILEFLOW_CLI_LANGUAGE=lv`
 
 ## Backup and Restore Procedures
 
 ### Manual Backup
 
 - **Backup Index:**
-  - Copy `.file_sorter/index.json` to backup location
+  - Copy `.fileflow_cli/index.json` to backup location
   - Contains all indexed file metadata
 
 - **Backup Versions:**
-  - Copy `.file_sorter/versions/` directory
+  - Copy `.fileflow_cli/versions/` directory
   - Contains all version snapshots for rollback
 
 - **Backup Configuration:**
-  - Copy `.file_sorter/config.json`
+  - Copy `.fileflow_cli/config.json`
   - Contains user settings and API keys
 
 - **Complete Backup:**
-  - Copy entire `.file_sorter/` directory
+  - Copy entire `.fileflow_cli/` directory
   - Preserves all data including checkpoints
 
 ### Restore Procedures
 
 - **Restore from Backup:**
-  1. Stop File Sorter if running
-  2. Copy backup files to `.file_sorter/` directory
+  1. Stop FileFlowCLI if running
+  2. Copy backup files to `.fileflow_cli/` directory
   3. Verify file permissions
-  4. Launch File Sorter - it will detect restored data
+  4. Launch FileFlowCLI - it will detect restored data
 
 - **Selective Restore:**
   - Restore only index: Copy `index.json`
@@ -1940,8 +1940,8 @@ iwr -useb https://raw.githubusercontent.com/user/file-sorter/main/install.ps1 | 
   - Template for other users
   - Command: Available in settings menu
 
-- **Export/Import .file_sorter Directory:**
-  - **Primary method:** Copy entire `.file_sorter/` directory
+- **Export/Import .fileflow_cli Directory:**
+  - **Primary method:** Copy entire `.fileflow_cli/` directory
   - Contains all logic and data:
     - Index data
     - Version history
@@ -1950,7 +1950,7 @@ iwr -useb https://raw.githubusercontent.com/user/file-sorter/main/install.ps1 | 
     - Checkpoints
   - User can copy directory to backup location or another system
   - On import, copy directory to target location
-  - Tool detects and uses existing `.file_sorter/` directory
+  - Tool detects and uses existing `.fileflow_cli/` directory
 
 ## Data Migration
 
@@ -2412,9 +2412,9 @@ iwr -useb https://raw.githubusercontent.com/user/file-sorter/main/install.ps1 | 
 ### Debug Mode
 
 - **Enable Debug Mode:**
-  - Command line: `file-sorter --verbose`
+  - Command line: `fileflow-cli --verbose`
   - Config: `"debug": true`
-  - Environment: `FILE_SORTER_LOG_LEVEL=DEBUG`
+  - Environment: `FILEFLOW_CLI_LOG_LEVEL=DEBUG`
 
 - **Debug Information:**
   - Detailed operation logs
@@ -2425,9 +2425,9 @@ iwr -useb https://raw.githubusercontent.com/user/file-sorter/main/install.ps1 | 
 ### Log Analysis
 
 - **Log Locations:**
-  - Application logs: `.file_sorter/logs/application.log`
-  - Error logs: `.file_sorter/logs/errors.log`
-  - Debug logs: `.file_sorter/logs/debug.log`
+  - Application logs: `.fileflow_cli/logs/application.log`
+  - Error logs: `.fileflow_cli/logs/errors.log`
+  - Debug logs: `.fileflow_cli/logs/debug.log`
 
 - **Log Format:**
   - Structured JSON format
@@ -2439,12 +2439,12 @@ iwr -useb https://raw.githubusercontent.com/user/file-sorter/main/install.ps1 | 
 ### Update Process
 
 - **Checking for Updates:**
-  - Manual check: `file-sorter --check-updates`
+  - Manual check: `fileflow-cli --check-updates`
   - Automatic check: Configurable in settings
   - GitHub releases: Check releases page
 
 - **Updating:**
-  - Via pip: `pip install --upgrade file-sorter`
+  - Via pip: `pip install --upgrade fileflow-cli`
   - Via install script: Re-run install script
   - Manual: Download and install new version
 
@@ -2561,9 +2561,9 @@ This section provides a **simplified** step-by-step development plan focused on 
 ### Step 1: Project Setup
 - Create project structure:
   ```
-  file_sorter/
+  fileflow_cli/
   ├── src/
-  │   └── file_sorter/
+  │   └── fileflow_cli/
   │       ├── __init__.py
   │       └── main.py
   ├── requirements.txt
@@ -2571,16 +2571,16 @@ This section provides a **simplified** step-by-step development plan focused on 
   ├── README.md
   └── setup.py
   ```
-- Setup.py with entry point: `file-sorter`
+- Setup.py with entry point: `fileflow-cli`
 - Requirements.txt: `textual>=0.50.0`, `rich>=13.0.0`, `openai>=1.0.0`
-- Basic main.py that prints "File Sorter TUI - Starting..."
+- Basic main.py that prints "FileFlowCLI TUI - Starting..."
 
-**Test:** `pip install -e . && file-sorter` → Should print "File Sorter TUI - Starting..."
+**Test:** `pip install -e . && fileflow-cli` → Should print "FileFlowCLI TUI - Starting..."
 
 ---
 
 ### Step 2: Translation System Foundation
-- Create `src/file_sorter/i18n/` directory:
+- Create `src/fileflow_cli/i18n/` directory:
   ```
   i18n/
   ├── __init__.py
@@ -2591,8 +2591,8 @@ This section provides a **simplified** step-by-step development plan focused on 
   ```json
   {
     "app": {
-      "title": "File Sorter",
-      "welcome": "Welcome to File Sorter"
+      "title": "FileFlowCLI",
+      "welcome": "Welcome to FileFlowCLI"
     },
     "main_menu": {
       "title": "Main Menu",
@@ -2619,8 +2619,8 @@ This section provides a **simplified** step-by-step development plan focused on 
 ---
 
 ### Step 3: Configuration System
-- Create `src/file_sorter/utils/config.py`:
-  - Function to find/create `.file_sorter/` directory in working directory
+- Create `src/fileflow_cli/utils/config.py`:
+  - Function to find/create `.fileflow_cli/` directory in working directory
   - Function to load/create `config.json` with defaults:
     ```json
     {
@@ -2632,17 +2632,17 @@ This section provides a **simplified** step-by-step development plan focused on 
       "thread_count": 4
     }
     ```
-  - Check parent directories for existing `.file_sorter/` (offer to use parent's)
+  - Check parent directories for existing `.fileflow_cli/` (offer to use parent's)
 
-**Test:** Run program → Should create `.file_sorter/config.json` in current directory
+**Test:** Run program → Should create `.fileflow_cli/config.json` in current directory
 
 ---
 
 ### Step 4: Dynamic Error Handling System
    ```
-   file_sorter/
+   fileflow_cli/
    ├── src/
-   │   └── file_sorter/
+   │   └── fileflow_cli/
    │       ├── __init__.py
    │       └── main.py
    ├── tests/
@@ -2660,8 +2660,8 @@ This section provides a **simplified** step-by-step development plan focused on 
    ```
 
 3. Create basic `setup.py`:
-   - Package name: `file-sorter`
-   - Entry point: `file-sorter` command → `file_sorter.main:main`
+   - Package name: `fileflow-cli`
+   - Entry point: `fileflow-cli` command → `fileflow_cli.main:main`
 
 4. Create `.gitignore`:
    ```
@@ -2670,7 +2670,7 @@ This section provides a **simplified** step-by-step development plan focused on 
    *.pyo
    *.pyd
    .Python
-   .file_sorter/
+   .fileflow_cli/
    *.egg-info/
    dist/
    build/
@@ -2681,7 +2681,7 @@ This section provides a **simplified** step-by-step development plan focused on 
 5. Create basic `main.py`:
    ```python
    def main():
-       print("File Sorter TUI - Starting...")
+       print("FileFlowCLI TUI - Starting...")
        print("Project structure OK!")
    
    if __name__ == "__main__":
@@ -2690,20 +2690,20 @@ This section provides a **simplified** step-by-step development plan focused on 
 
 **Testing Instructions:**
 1. Install in development mode: `pip install -e .`
-2. Run: `file-sorter`
-3. **Expected:** Should print "File Sorter TUI - Starting..." and "Project structure OK!"
+2. Run: `fileflow-cli`
+3. **Expected:** Should print "FileFlowCLI TUI - Starting..." and "Project structure OK!"
 4. **Verify:** Project structure exists, no errors
 
 **Success Criteria:**
 - ✅ Project structure created
 - ✅ Can install package with `pip install -e .`
-- ✅ Can run `file-sorter` command
+- ✅ Can run `fileflow-cli` command
 - ✅ No errors
 
 ---
 
 ### Step 4: Dynamic Error Handling System
-- Create `src/file_sorter/utils/error_handler.py`:
+- Create `src/fileflow_cli/utils/error_handler.py`:
   - Centralized error handling class
   - Error types: FileOperationError, LLMError, IndexingError, ConfigError
   - Function `handle_error(error, context)`:
@@ -2729,7 +2729,7 @@ This section provides a **simplified** step-by-step development plan focused on 
 ---
 
 ### Step 5: Basic TUI
-   - Function to find/create `.file_sorter/` directory in current working directory
+   - Function to find/create `.fileflow_cli/` directory in current working directory
    - Function to load/create `config.json` with defaults
    - Default config structure:
      ```json
@@ -2745,29 +2745,29 @@ This section provides a **simplified** step-by-step development plan focused on 
      ```
 
 2. Update `main.py` to initialize config:
-   - Check/create `.file_sorter/` directory
+   - Check/create `.fileflow_cli/` directory
    - Load/create config.json
    - Print config location
 
 **Testing Instructions:**
-1. Run: `file-sorter`
-2. **Expected:** Should create `.file_sorter/` directory in current directory
+1. Run: `fileflow-cli`
+2. **Expected:** Should create `.fileflow_cli/` directory in current directory
 3. **Expected:** Should create `config.json` with default values
-4. Check: `ls -la .file_sorter/` (should show config.json)
-5. Check: `cat .file_sorter/config.json` (should show default config)
-6. Change directory: `cd subdirectory && file-sorter`
-7. **Expected:** Should create new `.file_sorter/` in subdirectory
+4. Check: `ls -la .fileflow_cli/` (should show config.json)
+5. Check: `cat .fileflow_cli/config.json` (should show default config)
+6. Change directory: `cd subdirectory && fileflow-cli`
+7. **Expected:** Should create new `.fileflow_cli/` in subdirectory
 
 **Success Criteria:**
-- ✅ `.file_sorter/` directory created in working directory
+- ✅ `.fileflow_cli/` directory created in working directory
 - ✅ `config.json` created with defaults
 - ✅ Config can be loaded
-- ✅ Each directory gets its own `.file_sorter/`
+- ✅ Each directory gets its own `.fileflow_cli/`
 
 ---
 
 ### Step 5: Basic TUI
-- Create `src/file_sorter/tui/app.py`:
+- Create `src/fileflow_cli/tui/app.py`:
   - Basic Textual App class
   - Load translations
   - Main screen with header (top section) and content area (bottom section)
@@ -2782,38 +2782,38 @@ This section provides a **simplified** step-by-step development plan focused on 
 
 **Tasks:**
 1. Add function to `utils/config.py`:
-   - `find_parent_file_sorter()` - walks up directory tree looking for `.file_sorter/`
+   - `find_parent_fileflow_cli()` - walks up directory tree looking for `.fileflow_cli/`
    - Returns path if found, None otherwise
 
 2. Update `main.py`:
-   - If in subdirectory, check for parent `.file_sorter/`
-   - If found, print message: "Found .file_sorter in parent directory: {path}"
-   - Ask user: "Use parent's .file_sorter? (y/n)" (for now, just print)
+   - If in subdirectory, check for parent `.fileflow_cli/`
+   - If found, print message: "Found .fileflow_cli in parent directory: {path}"
+   - Ask user: "Use parent's .fileflow_cli? (y/n)" (for now, just print)
 
 **Testing Instructions:**
 1. Create test structure:
    ```
    test_dir/
-   ├── .file_sorter/
+   ├── .fileflow_cli/
    │   └── config.json
    └── subdir/
    ```
-2. Run from `test_dir/`: `file-sorter`
-3. **Expected:** Uses `test_dir/.file_sorter/`
-4. Run from `test_dir/subdir/`: `file-sorter`
-5. **Expected:** Detects parent `.file_sorter/` and prints message
+2. Run from `test_dir/`: `fileflow-cli`
+3. **Expected:** Uses `test_dir/.fileflow_cli/`
+4. Run from `test_dir/subdir/`: `fileflow-cli`
+5. **Expected:** Detects parent `.fileflow_cli/` and prints message
 
 **Success Criteria:**
-- ✅ Can detect parent `.file_sorter/`
+- ✅ Can detect parent `.fileflow_cli/`
 - ✅ Prints appropriate message
 - ✅ Works correctly in nested directories
 
 ---
 
 ### Step 6: Advanced Checkpoint System
-- Create `src/file_sorter/storage/checkpoint_manager.py`:
+- Create `src/fileflow_cli/storage/checkpoint_manager.py`:
   - Function `save_checkpoint(progress_data, path)`:
-    - Saves to `.file_sorter/index_checkpoint.json`
+    - Saves to `.fileflow_cli/index_checkpoint.json`
     - Includes: processed files list, batch number, total files, file hashes
     - Saves quickly (doesn't block indexing)
   - Function `load_checkpoint(path)`:
@@ -2848,7 +2848,7 @@ This section provides a **simplified** step-by-step development plan focused on 
 ---
 
 ### Step 7: File Indexing with Checkpoint and Parallel Processing Integration
-- Create `src/file_sorter/core/parallel_executor.py`:
+- Create `src/fileflow_cli/core/parallel_executor.py`:
   - Dynamic parallel processing system (reusable across codebase)
   - Class `ParallelExecutor`:
     - Configurable thread pool (from config: `thread_count`, default 4)
@@ -2865,7 +2865,7 @@ This section provides a **simplified** step-by-step development plan focused on 
   - Easy to use: `executor.execute_parallel(file_tasks, progress_callback)`
   - TUI-friendly: Progress callbacks work seamlessly with TUI updates
 
-- Create `src/file_sorter/core/indexer.py`:
+- Create `src/fileflow_cli/core/indexer.py`:
   - Function `index_directory(path, checkpoint=None)`:
     - Recursively walks directory
     - Uses `ParallelExecutor` for parallel file processing
@@ -2881,7 +2881,7 @@ This section provides a **simplified** step-by-step development plan focused on 
     - Loads checkpoint
     - Skips already processed files
     - Continues from last batch with parallel processing
-  - Create `src/file_sorter/storage/index_storage.py`:
+  - Create `src/fileflow_cli/storage/index_storage.py`:
     - Save/load index.json
     - Include `indexed_at` timestamp
 
@@ -2922,7 +2922,7 @@ This section provides a **simplified** step-by-step development plan focused on 
 ---
 
 ### Step 9: File Table Display
-- Create `src/file_sorter/tui/widgets/file_table.py`:
+- Create `src/fileflow_cli/tui/widgets/file_table.py`:
   - DataTable widget
   - Loads from `index.json`
   - Columns: Name, Path, Type, Size, Modified
@@ -2934,7 +2934,7 @@ This section provides a **simplified** step-by-step development plan focused on 
 ---
 
 ### Step 10: LLM Integration (OpenAI ChatGPT-5.2)
-- Create `src/file_sorter/core/llm_client.py`:
+- Create `src/fileflow_cli/core/llm_client.py`:
   - OpenAI client class
   - Function `send_request(prompt, data, api_key)`:
     - Formats request with file structure
@@ -2967,7 +2967,7 @@ This section provides a **simplified** step-by-step development plan focused on 
 ---
 
 ### Step 11: Advanced Conflict Resolution System
-- Create `src/file_sorter/core/conflict_resolver.py`:
+- Create `src/fileflow_cli/core/conflict_resolver.py`:
   - Centralized conflict resolution logic (reusable)
   - Conflict types:
     - File exists at destination
@@ -3003,7 +3003,7 @@ This section provides a **simplified** step-by-step development plan focused on 
 ---
 
 ### Step 12: Version System
-- Create `src/file_sorter/core/version_manager.py`:
+- Create `src/fileflow_cli/core/version_manager.py`:
   - Function `create_version(description)`:
     - Saves directory structure to `versions/vN.json`
     - Includes timestamp, description
@@ -3033,7 +3033,7 @@ This section provides a **simplified** step-by-step development plan focused on 
 ---
 
 ### Step 13: File Operations with Conflict Resolution
-- Create `src/file_sorter/core/file_operations.py`:
+- Create `src/fileflow_cli/core/file_operations.py`:
   - Function `move_file(source, destination, conflict_resolver)`:
     - Validates paths
     - Checks for conflicts

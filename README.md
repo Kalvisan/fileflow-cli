@@ -1,8 +1,8 @@
-# File Sorter
+# FileFlowCLI
 
 A privacy-focused, terminal-based file organization tool that uses LLM analysis to help you organize your files and directories efficiently. Built with Python and Textual for a modern TUI experience.
 
-[![CodeQL](https://github.com/yourusername/file-sorter/workflows/CodeQL/badge.svg)](https://github.com/yourusername/file-sorter/security/code-scanning)
+[![CodeQL](https://github.com/Kalvisan/fileflow-cli/workflows/CodeQL/badge.svg)](https://github.com/Kalvisan/fileflow-cli/security/code-scanning)
 [![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
@@ -21,21 +21,21 @@ A privacy-focused, terminal-based file organization tool that uses LLM analysis 
 
 **Recommended (safest):**
 ```bash
-pip install file-sorter
+pip install fileflow-cli
 ```
 
 **Alternative (manual script review):**
 ```bash
 # Download and review the script first
-curl -fsSLO https://raw.githubusercontent.com/yourusername/file-sorter/main/install.sh
+curl -fsSLO https://raw.githubusercontent.com/Kalvisan/fileflow-cli/main/install.sh
 less install.sh  # Review the script
 bash install.sh  # Run after review
 ```
 
 **Development:**
 ```bash
-git clone https://github.com/yourusername/file-sorter.git
-cd file-sorter
+git clone https://github.com/Kalvisan/fileflow-cli.git
+cd fileflow-cli
 pip install -e .
 ```
 
@@ -43,13 +43,13 @@ pip install -e .
 
 ```bash
 # Launch the tool
-file-sorter
+fileflow-cli
 
 # Specify target directory
-file-sorter --directory /path/to/directory
+fileflow-cli --directory /path/to/directory
 
 # Enable verbose logging
-file-sorter --verbose
+fileflow-cli --verbose
 ```
 
 **Typical workflow:**
@@ -61,7 +61,7 @@ file-sorter --verbose
 
 ## How It Works
 
-File Sorter operates in three phases:
+FileFlowCLI operates in three phases:
 
 1. **Indexing**: Scans directory structure and extracts metadata (file types, sizes, dates). For text files, reads only first 512-1024 bytes as preview. Large files (>10MB) skip preview entirely.
 2. **Analysis**: Optionally sends selected data to LLM for organization suggestions. You choose what to send: structure only, structure + metadata, or structure + metadata + previews.
@@ -138,7 +138,7 @@ When using LLM analysis, you choose exactly what data is sent:
 
 ### Data Storage
 
-**Stored locally in `.file_sorter/`:**
+**Stored locally in `.fileflow_cli/`:**
 - Index files: metadata only (file names, types, sizes, modification dates)
 - Content previews: first 512-1024 bytes for text files only
 - File hash sums: SHA-256 for change detection
@@ -158,7 +158,7 @@ When using LLM analysis, you choose exactly what data is sent:
 3. **Cloud sync conflicts**: If files change during indexing (e.g., Dropbox/Drive sync), index may become inconsistent
 4. **LLM recommendations may be incorrect**: Always review suggestions before executing. Use version snapshots for safety
 5. **Version snapshots are structure-only**: File contents are not backed up - only directory structure and file metadata
-6. **Index contains metadata**: File names, paths, sizes, and dates are stored locally - consider this if sharing `.file_sorter/` directory
+6. **Index contains metadata**: File names, paths, sizes, and dates are stored locally - consider this if sharing `.fileflow_cli/` directory
 
 ## Security
 
@@ -166,15 +166,15 @@ When using LLM analysis, you choose exactly what data is sent:
 
 This project uses GitHub's built-in security features:
 
-- **[CodeQL](https://github.com/yourusername/file-sorter/security/code-scanning)** - Automated security scanning on every commit and pull request
-- **[Dependabot](https://github.com/yourusername/file-sorter/security/dependabot)** - Automatic dependency vulnerability monitoring and updates
+- **[CodeQL](https://github.com/Kalvisan/fileflow-cli/security/code-scanning)** - Automated security scanning on every commit and pull request
+- **[Dependabot](https://github.com/Kalvisan/fileflow-cli/security/dependabot)** - Automatic dependency vulnerability monitoring and updates
 
 ### How to Verify Security Claims
 
 **Review the code:**
 ```bash
-git clone https://github.com/yourusername/file-sorter.git
-cd file-sorter
+git clone https://github.com/Kalvisan/fileflow-cli.git
+cd fileflow-cli
 # Review source code in src/ directory
 ```
 
@@ -184,13 +184,13 @@ cd file-sorter
 - Check config: Verify no telemetry endpoints configured
 
 **Audit data storage:**
-- Inspect `.file_sorter/` directory: Contains only metadata, no file contents
-- Review index files: `cat .file_sorter/index.json` (verify no sensitive data)
+- Inspect `.fileflow_cli/` directory: Contains only metadata, no file contents
+- Review index files: `cat .fileflow_cli/index.json` (verify no sensitive data)
 - Check version files: Only directory structure, not file contents
 
 ## Configuration
 
-Configuration is stored in `.file_sorter/config.json`:
+Configuration is stored in `.fileflow_cli/config.json`:
 
 ```json
 {
@@ -242,17 +242,17 @@ Configuration is stored in `.file_sorter/config.json`:
 
 ## Uninstall & Cleanup
 
-To completely remove File Sorter and all its data:
+To completely remove FileFlowCLI and all its data:
 
 ```bash
 # Uninstall the package
-pip uninstall file-sorter
+pip uninstall fileflow-cli
 
 # Remove all local data (indexes, versions, config)
-rm -rf .file_sorter/
+rm -rf .fileflow_cli/
 
 # Or remove from specific directory
-rm -rf /path/to/directory/.file_sorter/
+rm -rf /path/to/directory/.fileflow_cli/
 ```
 
 **What gets deleted:**
@@ -352,8 +352,8 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 ### Development Setup
 
 ```bash
-git clone https://github.com/yourusername/file-sorter.git
-cd file-sorter
+git clone https://github.com/Kalvisan/fileflow-cli.git
+cd fileflow-cli
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e ".[dev]"
@@ -384,9 +384,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- **Documentation**: [Full Documentation](https://file-sorter.readthedocs.io/)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/file-sorter/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/file-sorter/discussions)
+- **Documentation**: [Full Documentation](https://fileflow-cli.readthedocs.io/)
+- **Issues**: [GitHub Issues](https://github.com/Kalvisan/fileflow-cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/Kalvisan/fileflow-cli/discussions)
 - **Security**: [Security Policy](SECURITY.md)
 
 ## Acknowledgments

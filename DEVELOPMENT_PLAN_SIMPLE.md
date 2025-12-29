@@ -29,9 +29,9 @@
 ### Step 1: Project Setup
 - Create project structure:
   ```
-  file_sorter/
+  fileflow_cli/
   ├── src/
-  │   └── file_sorter/
+  │   └── fileflow_cli/
   │       ├── __init__.py
   │       └── main.py
   ├── requirements.txt
@@ -39,16 +39,16 @@
   ├── README.md
   └── setup.py
   ```
-- Setup.py with entry point: `file-sorter`
+- Setup.py with entry point: `fileflow-cli`
 - Requirements.txt: `textual>=0.50.0`, `rich>=13.0.0`, `openai>=1.0.0`
-- Basic main.py that prints "File Sorter TUI - Starting..."
+- Basic main.py that prints "FileFlowCLI TUI - Starting..."
 
-**Test:** `pip install -e . && file-sorter` → Should print "File Sorter TUI - Starting..."
+**Test:** `pip install -e . && fileflow-cli` → Should print "FileFlowCLI TUI - Starting..."
 
 ---
 
 ### Step 2: Translation System Foundation
-- Create `src/file_sorter/i18n/` directory:
+- Create `src/fileflow_cli/i18n/` directory:
   ```
   i18n/
   ├── __init__.py
@@ -59,8 +59,8 @@
   ```json
   {
     "app": {
-      "title": "File Sorter",
-      "welcome": "Welcome to File Sorter"
+      "title": "FileFlowCLI",
+      "welcome": "Welcome to FileFlowCLI"
     },
     "main_menu": {
       "title": "Main Menu",
@@ -87,8 +87,8 @@
 ---
 
 ### Step 3: Configuration System
-- Create `src/file_sorter/utils/config.py`:
-  - Function to find/create `.file_sorter/` directory in working directory
+- Create `src/fileflow_cli/utils/config.py`:
+  - Function to find/create `.fileflow_cli/` directory in working directory
   - Function to load/create `config.json` with defaults:
     ```json
     {
@@ -100,14 +100,14 @@
       "thread_count": 4
     }
     ```
-  - Check parent directories for existing `.file_sorter/` (offer to use parent's)
+  - Check parent directories for existing `.fileflow_cli/` (offer to use parent's)
 
-**Test:** Run program → Should create `.file_sorter/config.json` in current directory
+**Test:** Run program → Should create `.fileflow_cli/config.json` in current directory
 
 ---
 
 ### Step 4: Dynamic Error Handling System
-- Create `src/file_sorter/utils/error_handler.py`:
+- Create `src/fileflow_cli/utils/error_handler.py`:
   - Centralized error handling class
   - Error types: FileOperationError, LLMError, IndexingError, ConfigError
   - Function `handle_error(error, context)`:
@@ -133,7 +133,7 @@
 ---
 
 ### Step 5: Basic TUI
-- Create `src/file_sorter/tui/app.py`:
+- Create `src/fileflow_cli/tui/app.py`:
   - Basic Textual App class
   - Load translations
   - Main screen with header (top section) and content area (bottom section)
@@ -145,9 +145,9 @@
 ---
 
 ### Step 6: Advanced Checkpoint System
-- Create `src/file_sorter/storage/checkpoint_manager.py`:
+- Create `src/fileflow_cli/storage/checkpoint_manager.py`:
   - Function `save_checkpoint(progress_data, path)`:
-    - Saves to `.file_sorter/index_checkpoint.json`
+    - Saves to `.fileflow_cli/index_checkpoint.json`
     - Includes: processed files list, batch number, total files, file hashes
     - Saves quickly (doesn't block indexing)
   - Function `load_checkpoint(path)`:
@@ -182,7 +182,7 @@
 ---
 
 ### Step 7: File Indexing with Checkpoint and Parallel Processing Integration
-- Create `src/file_sorter/core/parallel_executor.py`:
+- Create `src/fileflow_cli/core/parallel_executor.py`:
   - Dynamic parallel processing system (reusable across codebase)
   - Class `ParallelExecutor`:
     - Configurable thread pool (from config: `thread_count`, default 4)
@@ -199,7 +199,7 @@
   - Easy to use: `executor.execute_parallel(file_tasks, progress_callback)`
   - TUI-friendly: Progress callbacks work seamlessly with TUI updates
 
-- Create `src/file_sorter/core/indexer.py`:
+- Create `src/fileflow_cli/core/indexer.py`:
   - Function `index_directory(path, checkpoint=None)`:
     - Recursively walks directory
     - Uses `ParallelExecutor` for parallel file processing
@@ -215,7 +215,7 @@
     - Loads checkpoint
     - Skips already processed files
     - Continues from last batch with parallel processing
-  - Create `src/file_sorter/storage/index_storage.py`:
+  - Create `src/fileflow_cli/storage/index_storage.py`:
     - Save/load index.json
     - Include `indexed_at` timestamp
 
@@ -254,7 +254,7 @@
 ---
 
 ### Step 9: File Table Display
-- Create `src/file_sorter/tui/widgets/file_table.py`:
+- Create `src/fileflow_cli/tui/widgets/file_table.py`:
   - DataTable widget
   - Loads from `index.json`
   - Columns: Name, Path, Type, Size, Modified
@@ -266,7 +266,7 @@
 ---
 
 ### Step 10: LLM Integration (OpenAI ChatGPT-5.2)
-- Create `src/file_sorter/core/llm_client.py`:
+- Create `src/fileflow_cli/core/llm_client.py`:
   - OpenAI client class
   - Function `send_request(prompt, data, api_key)`:
     - Formats request with file structure
@@ -299,7 +299,7 @@
 ---
 
 ### Step 11: Advanced Conflict Resolution System
-- Create `src/file_sorter/core/conflict_resolver.py`:
+- Create `src/fileflow_cli/core/conflict_resolver.py`:
   - Centralized conflict resolution logic (reusable)
   - Conflict types:
     - File exists at destination
@@ -335,7 +335,7 @@
 ---
 
 ### Step 12: Version System
-- Create `src/file_sorter/core/version_manager.py`:
+- Create `src/fileflow_cli/core/version_manager.py`:
   - Function `create_version(description)`:
     - Saves directory structure to `versions/vN.json`
     - Includes timestamp, description
@@ -365,7 +365,7 @@
 ---
 
 ### Step 13: File Operations with Conflict Resolution
-- Create `src/file_sorter/core/file_operations.py`:
+- Create `src/fileflow_cli/core/file_operations.py`:
   - Function `move_file(source, destination, conflict_resolver)`:
     - Validates paths
     - Checks for conflicts
