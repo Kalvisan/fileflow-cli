@@ -85,10 +85,12 @@ class FileIndexer:
             )
             
             # Collect results
+            batch_file_info = []
             for result in batch_results:
                 if result:
                     processed_paths.append(result["path"])
                     file_hashes[result["path"]] = result["hash"]
+                    batch_file_info.append(result)
             
             # Save checkpoint
             progress_data = {
@@ -104,13 +106,14 @@ class FileIndexer:
             
             self.checkpoint_manager.save_checkpoint(progress_data)
             
-            # Yield progress update
+            # Yield progress update with file information
             yield {
                 "total_files": total_files,
                 "processed_files": len(processed_paths),
                 "current_batch": batch_num,
                 "total_batches": total_batches,
-                "progress_percent": (len(processed_paths) / total_files * 100) if total_files > 0 else 0
+                "progress_percent": (len(processed_paths) / total_files * 100) if total_files > 0 else 0,
+                "recent_files": [f["path"] for f in batch_file_info]  # Add recent files info
             }
         
         # Clear checkpoint when complete

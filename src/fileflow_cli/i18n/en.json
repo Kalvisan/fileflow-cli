@@ -52,7 +52,8 @@
   },
   "shortcuts": {
     "quit": "Quit",
-    "help": "Help"
+    "help": "Help",
+    "search": "Search"
   }
 }
 

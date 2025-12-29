@@ -88,6 +88,7 @@ class FileFlowCLIApp(App):
         Binding("v", "view_files", "View Files", priority=True),
         Binding("a", "analyze_llm", "Analyze", priority=True),
         Binding("s", "settings", "Settings", priority=True),
+        Binding("/", "search", "Search", priority=True),
         Binding("h", "help", "Help", priority=True),
     ]
     
@@ -261,6 +262,16 @@ class FileFlowCLIApp(App):
         )
         self.query_one("#main_content", Static).update(content)
     
+    def action_search(self) -> None:
+        """Open search dialog."""
+        # Search functionality will be implemented in Step 14
+        content = (
+            f"Search\n\n"
+            f"Search functionality will be implemented in Step 14.\n"
+            f"Press [/] to open search dialog when available."
+        )
+        self.query_one("#main_content", Static).update(content)
+    
     def action_help(self) -> None:
         """Show help information."""
         content = (
@@ -270,6 +281,7 @@ class FileFlowCLIApp(App):
             f"  [v] - {t('main_menu.view_files')}\n"
             f"  [a] - {t('main_menu.analyze_llm')}\n"
             f"  [s] - {t('main_menu.settings')}\n"
+            f"  [/] - Search\n"
             f"  [h] - {t('shortcuts.help')}\n"
             f"  [q] - {t('shortcuts.quit')}\n\n"
             f"Features:\n"
