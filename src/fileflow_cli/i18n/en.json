@@ -1,0 +1,58 @@
+{
+  "app": {
+    "title": "FileFlowCLI",
+    "subtitle": "File Organization Tool"
+  },
+  "main_menu": {
+    "start_indexing": "Start Indexing",
+    "analyze_llm": "Analyze with LLM",
+    "view_files": "View Files",
+    "settings": "Settings",
+    "exit": "Exit"
+  },
+  "status": {
+    "indexing": "Indexing",
+    "ready": "Ready",
+    "language": "Language",
+    "files_indexed": "Files Indexed"
+  },
+  "errors": {
+    "file_not_found": "File not found: {path}",
+    "permission_denied": "Permission denied: {path}",
+    "generic_error": "An error occurred: {message}"
+  },
+  "indexing": {
+    "not_started": "Not Started",
+    "in_progress": "In Progress",
+    "complete": "Complete",
+    "last_indexed": "Last indexed: {timestamp}",
+    "no_index": "No index available",
+    "resuming": "Resuming from checkpoint...",
+    "starting": "Starting indexing...",
+    "paused": "Paused. Press [r] to resume or [c] to cancel.",
+    "cancelled": "Cancelled. Returning to main screen...",
+    "complete_msg": "Indexing complete!",
+    "processing": "Processing... {percent}%",
+    "files_stats": "Files: {processed}/{total} | Batch: {batch}/{total_batches}"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "llm_provider": "LLM Provider",
+    "llm_api_key": "LLM API Key",
+    "thread_count": "Thread Count",
+    "batch_size": "Batch Size",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "content": {
+    "welcome": "Welcome to FileFlowCLI",
+    "instructions": "Use keyboard shortcuts or menu to navigate",
+    "no_files": "No files indexed yet. Start indexing to begin."
+  },
+  "shortcuts": {
+    "quit": "Quit",
+    "help": "Help"
+  }
+}
+
